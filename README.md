@@ -12,3 +12,5 @@ Images (replace with better versions using the same filenames):
 - public/images/photos: hero.webp (AI) and nut crops from the pack PDFs (almonds, cashew, pistachio, raisins, used on Quality; mixed-nuts, used only in the Instagram strip).
 
 Launch: set NEXT_PUBLIC_NOINDEX=1 on preview, remove it at launch, set NEXT_PUBLIC_SITE_URL to the real domain.
+
+Deploy: pushing to main deploys https://real-rich.vercel.app (Vercel project real-rich, connected to this GitHub repo). Other branches get preview URLs. Vercel's Hobby plan only builds commits authored by DevTechCrew, the GitHub account linked to Vercel.
