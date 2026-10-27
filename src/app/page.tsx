@@ -7,10 +7,12 @@ import { Blobs, FloatingNuts, ParallaxNut, RotatingBadge, SplitWords, Wave } fro
 import WaButton from '@/components/WaButton';
 import { ArrowRightIcon, InstagramIcon } from '@/components/Icons';
 import { products } from '@/data/products';
+import { faq } from '@/data/faq';
 import { site } from '@/data/site';
 import { generalMessage, waLink } from '@/lib/whatsapp';
 
 // Thin line icons (24 grid). pathLength lets CSS draw them in.
+const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
 const why = [
   { t: 'Hand-picked', d: 'Sorted by hand, piece by piece.', i: <><path pathLength={1} d="M12 3c4 3 6 7 6 11a6 6 0 0 1-12 0c0-4 2-8 6-11Z" /><path pathLength={1} d="m9 14 2 2 4-4" /></> },
   { t: 'Sourced from origin', d: 'Bought directly from where they grow.', i: <><circle pathLength={1} cx="12" cy="12" r="9" /><path pathLength={1} d="M3 12h18M12 3c-3.500 4-3.500 14 0 18M12 3c3.500 4 3.500 14 0 18" /></> },
@@ -86,6 +88,15 @@ export default function Home() {
       <div className="actions" style={{ justifyContent: 'center' }}>
         <WaButton className="btn big" href={waLink(generalMessage)} where="final_cta">Enquire on WhatsApp</WaButton>
       </div>
+    </Section>
+
+    <Wave from="ivory" to="almond" />
+
+    {/* The FAQ lives here (there is no /faq page) */}
+    <Section id="faq" tone="alt">
+      <h2>Questions</h2>
+      {faq.map(f => <details key={f.q}><summary>{f.q}</summary><p>{f.a}</p></details>)}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
     </Section>
   </>);
 }

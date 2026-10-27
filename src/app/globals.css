@@ -388,13 +388,6 @@ body::before{content:'';position:fixed;inset:0;z-index:2;pointer-events:none;opa
 .prod:hover .imgbox img{transform:scale(1.08) rotate(-1.2deg)}
 .image-index{overflow:hidden}
 .image-index::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.85) 50%,transparent 70%);animation:sweep 3.6s ease-in-out infinite}
-/* custom cursor ring (desktop only) */
-.cursor-ring{position:fixed;left:0;top:0;z-index:90;width:34px;height:34px;border:1px solid var(--gold);border-radius:50%;pointer-events:none;opacity:0;display:grid;place-items:center;color:var(--espresso);transition:opacity .3s,width .35s var(--ease),height .35s var(--ease),background-color .3s}
-.cursor-ring.vis{opacity:1}
-.cursor-ring.on{width:76px;height:76px;background:rgba(184,149,74,.9)}
-.cursor-ring .ic{width:22px;height:22px;opacity:0;transition:opacity .3s}
-.cursor-ring.on .ic{opacity:1}
-@media(hover:none),(pointer:coarse){.cursor-ring{display:none}}
 /* pulsing WhatsApp */
 .fab-wa::after{animation:ring 2.4s 1.8s infinite}
 /* farm-to-pack style timeline on "How we pick": line draws as you scroll */
@@ -459,3 +452,6 @@ html{scroll-behavior:auto}
 .ig-btn:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
 /* The footer now ends 10 px below the copyright line, so keep that line clear of the floating call and WhatsApp buttons */
 .legal{padding-right:84px}
+/* No text selection anywhere (client request). Form fields stay selectable so people can still type in them. */
+html{-webkit-user-select:none;user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}

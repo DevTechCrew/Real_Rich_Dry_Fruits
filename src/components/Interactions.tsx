@@ -1,16 +1,14 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { ArrowUpRightIcon } from './Icons';
 
-// Scroll effects (parallax nuts, timeline, same-page section links) and desktop-only pointer effects (magnetic buttons, cursor ring).
+// Scroll effects (parallax nuts, timeline, same-page section links) and desktop-only magnetic buttons. No custom cursor.
 export default function Interactions() {
-  const ring = useRef<HTMLDivElement>(null);
   const path = usePathname();
   useEffect(() => {
     const fine = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let ticking = false; let raf1 = 0; let raf2 = 0;
+    let ticking = false; let raf1 = 0;
     const speeds = Array.from(document.querySelectorAll<HTMLElement>('[data-speed]'));
     const timelines = Array.from(document.querySelectorAll<HTMLElement>('.steps'));
     const onScroll = () => { if (ticking) return; ticking = true; raf1 = requestAnimationFrame(() => {
@@ -39,24 +37,18 @@ export default function Interactions() {
 
     let cleanup = () => {};
     if (fine && !reduce) {
-      let mx = 0, my = 0, x = 0, y = 0, run = false; let magnet: HTMLElement | null = null;
-      const loop = () => { x += (mx - x) * 0.2; y += (my - y) * 0.2;
-        if (ring.current) ring.current.style.transform = `translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
-        if (Math.abs(mx - x) + Math.abs(my - y) > 0.3) raf2 = requestAnimationFrame(loop); else run = false; };
+      let magnet: HTMLElement | null = null;
       const move = (e: PointerEvent) => {
-        if (e.pointerType !== 'mouse') return; mx = e.clientX; my = e.clientY;
-        ring.current?.classList.add('vis'); if (!run) { run = true; raf2 = requestAnimationFrame(loop); }
-        const t = e.target as HTMLElement;
-        ring.current?.classList.toggle('on', !!t.closest('.prod .imgbox'));
-        const m = t.closest<HTMLElement>('.btn,.nav-cta,.soc,.ig-btn');
+        if (e.pointerType !== 'mouse') return;
+        const m = (e.target as HTMLElement).closest<HTMLElement>('.btn,.nav-cta,.soc,.ig-btn');
         if (magnet && magnet !== m) { magnet.style.translate = ''; magnet = null; }
         if (m) { const b = m.getBoundingClientRect(); m.style.translate = `${(e.clientX - b.left - b.width / 2) * 0.18}px ${(e.clientY - b.top - b.height / 2) * 0.28}px`; magnet = m; }
       };
-      const leave = () => { ring.current?.classList.remove('vis'); if (magnet) { magnet.style.translate = ''; magnet = null; } };
+      const leave = () => { if (magnet) { magnet.style.translate = ''; magnet = null; } };
       addEventListener('pointermove', move); document.documentElement.addEventListener('pointerleave', leave);
       cleanup = () => { removeEventListener('pointermove', move); document.documentElement.removeEventListener('pointerleave', leave); };
     }
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('resize', onScroll); document.removeEventListener('click', toSection, true); cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); cleanup(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('resize', onScroll); document.removeEventListener('click', toSection, true); cancelAnimationFrame(raf1); cleanup(); };
   }, [path]);
-  return <div ref={ring} className="cursor-ring" aria-hidden="true"><ArrowUpRightIcon /></div>;
+  return null;
 }
