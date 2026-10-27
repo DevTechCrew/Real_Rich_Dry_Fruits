@@ -26,7 +26,7 @@ export default function Interactions() {
       });
     }); };
     onScroll(); addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll);
-    // Links to a section on this page ("See our range", Products in the menu) glide there instead of jumping.
+    // Links to a section on this page (such as "See our range") glide there instead of jumping.
     // Capture phase, so Next's <Link> sees the click as handled and skips its own navigation.
     const toSection = (e: MouseEvent) => {
       const a = (e.target as Element).closest<HTMLAnchorElement>('a[href*="#"]');
@@ -47,8 +47,8 @@ export default function Interactions() {
         if (e.pointerType !== 'mouse') return; mx = e.clientX; my = e.clientY;
         ring.current?.classList.add('vis'); if (!run) { run = true; raf2 = requestAnimationFrame(loop); }
         const t = e.target as HTMLElement;
-        ring.current?.classList.toggle('on', !!t.closest('.card .imgbox,.prod .imgbox'));
-        const m = t.closest<HTMLElement>('.btn,.nav-cta,.soc,.car-btn');
+        ring.current?.classList.toggle('on', !!t.closest('.prod .imgbox'));
+        const m = t.closest<HTMLElement>('.btn,.nav-cta,.soc,.ig-btn');
         if (magnet && magnet !== m) { magnet.style.translate = ''; magnet = null; }
         if (m) { const b = m.getBoundingClientRect(); m.style.translate = `${(e.clientX - b.left - b.width / 2) * 0.18}px ${(e.clientY - b.top - b.height / 2) * 0.28}px`; magnet = m; }
       };

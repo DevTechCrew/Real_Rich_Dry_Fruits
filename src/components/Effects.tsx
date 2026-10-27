@@ -39,7 +39,7 @@ export function RotatingBadge() {
         <circle cx="60" cy="60" r="31" fill="none" stroke="#B8954A" strokeOpacity=".5" strokeWidth=".8" />
         <text fontSize="9.5" letterSpacing="1.5" fill="#2B1E16" fontFamily="Inter, sans-serif"><textPath href="#bc" textLength="270" lengthAdjust="spacing">HAND-PICKED • PREMIUM DRY FRUITS • </textPath></text>
       </svg>
-      <span className="badge-rr">R<i>R</i></span>
+      <img className="badge-logo" src="/logo-mark.png" alt="" width="260" height="212" />
     </div>
   );
 }

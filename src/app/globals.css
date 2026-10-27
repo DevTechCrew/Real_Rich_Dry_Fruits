@@ -39,8 +39,6 @@ p{max-width:62ch}
 /* grids */
 .grid4{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 16px}
 @media(min-width:880px){.grid4{grid-template-columns:repeat(4,1fr);gap:28px}}
-.card .meta{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 4px}
-.card .btn{width:100%;margin-top:10px;padding:0 12px;font-size:.88rem}
 .why{display:grid;gap:28px;grid-template-columns:repeat(2,1fr)}
 @media(min-width:880px){.why{grid-template-columns:repeat(4,1fr)}}
 .why svg{width:40px;height:40px;stroke:var(--gold);fill:none;stroke-width:1;margin-bottom:12px}
@@ -48,9 +46,6 @@ p{max-width:62ch}
 .why p{font-size:.92rem}
 .promise{font-family:var(--serif);font-size:clamp(1.7rem,5.5vw,3rem);line-height:1.25}
 .promise span{display:block}
-.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:24px}
-@media(min-width:880px){.tiles{grid-template-columns:repeat(4,1fr)}}
-.tiles a{display:block}
 /* product sections */
 .prod{display:grid;gap:28px;align-items:center;padding:56px 0;border-top:1px solid var(--gold)}
 .prod:first-of-type{border-top:0}
@@ -89,9 +84,9 @@ fieldset{border:0}
 .err{color:#8a2d1f;font-size:.92rem}
 .map{width:100%;height:340px;border:0;filter:saturate(.7)}
 /* footer */
-.ftr{background:var(--espresso);color:var(--ivory);padding:56px 0 100px}
+.ftr{background:var(--espresso);color:var(--ivory);padding:56px 0 10px}
 .ftr .wrap{display:grid;gap:32px}
-@media(min-width:880px){.ftr .wrap{grid-template-columns:1.2fr 1fr 1.4fr}.ftr{padding-bottom:56px}}
+@media(min-width:880px){.ftr .wrap{grid-template-columns:1.2fr 1fr 1.4fr}}
 .ftr a{text-decoration:none}.ftr a:hover{color:var(--gold)}
 .ftr ul{list-style:none}.ftr li a{display:inline-flex;min-height:36px;align-items:center}
 .ftr small{display:block;color:var(--almond);margin-top:8px}
@@ -104,14 +99,14 @@ html{-webkit-text-size-adjust:100%}
 body{overflow-x:clip}
 address a,.ftr p,.ftr small{overflow-wrap:anywhere}
 .ftr li a{min-height:44px}
-.ftr{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+.ftr{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
 /* phones */
 @media(max-width:599px){
   .section{padding:52px 0}
   .actions .btn,.actions .btn.big{width:100%}
   .btn.big{padding:0 20px;font-size:1rem}
   .prod{padding:40px 0}
-  .prod .imgbox{max-width:360px;margin-inline:auto;width:100%}
+  .prod .tilt{max-width:360px;margin-inline:auto;width:100%}
   .hero{padding:28px 0 48px}
   .map{height:280px}
   summary{font-size:1.25rem}
@@ -120,14 +115,13 @@ address a,.ftr p,.ftr small{overflow-wrap:anywhere}
 /* tablets */
 @media(min-width:600px) and (max-width:879px){
   .grid4{grid-template-columns:repeat(2,1fr);gap:28px}
-  .card .imgbox,.prod .imgbox{max-width:420px}
-  .prod .imgbox{margin-inline:auto;width:100%}
-  .tiles{grid-template-columns:repeat(4,1fr)}
+  .prod .tilt{max-width:420px}
+  .prod .tilt{margin-inline:auto;width:100%}
   .vals{grid-template-columns:repeat(3,1fr)}
   .why{grid-template-columns:repeat(4,1fr);gap:20px}
 }
-/* large screens: keep pack images from growing too tall */
-@media(min-width:880px){.prod .imgbox{max-width:440px;margin-inline:auto;width:100%}}
+/* large screens: keep product photos from growing too tall */
+@media(min-width:880px){.prod .tilt{max-width:440px;margin-inline:auto;width:100%}}
 
 /* ================= motion & hover layer ================= */
 :root{--ease:cubic-bezier(.2,.7,.2,1);interpolate-size:allow-keywords}
@@ -193,13 +187,6 @@ address a,.ftr p,.ftr small{overflow-wrap:anywhere}
 .tilt{transition:transform .3s ease-out;will-change:transform}
 .tilt .imgbox{transition:box-shadow .4s}
 .tilt:hover .imgbox{box-shadow:0 26px 40px -22px rgba(43,30,22,.55)}
-.card:hover .imgbox img,.prod:hover .imgbox img{transform:scale(1.045)}
-.card h3{transition:color .3s}
-.card:hover h3{color:var(--gold)}
-.tiles a{overflow:hidden;position:relative}
-.tiles a::after{content:'';position:absolute;inset:10px;border:1px solid var(--gold);opacity:0;transform:scale(1.06);transition:opacity .4s,transform .5s var(--ease)}
-.tiles a:hover::after{opacity:1;transform:none}
-.tiles a:hover img{transform:scale(1.07)}
 .vals>div,.grid4>div{transition:transform .35s var(--ease)}
 .vals>div:hover,.grid4>div:hover{transform:translateY(-4px)}
 .steps li{transition:padding-left .4s var(--ease)}
@@ -292,36 +279,12 @@ html{scroll-padding-top:110px}
 .tilt{position:relative}
 .image-index{position:absolute;top:13px;left:13px;font-size:8px;letter-spacing:.1em;color:var(--espresso);background:rgba(247,242,232,.85);padding:6px 8px;pointer-events:none}
 .image-arrow{position:absolute;bottom:12px;right:12px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--ivory);font-size:16px;pointer-events:none;transition:background .2s,transform .3s var(--ease)}
-.card:hover .image-arrow{background:var(--pistachio);transform:rotate(45deg)}
-.card .imgbox img{filter:saturate(.85);transition:transform .7s var(--ease),filter .5s,opacity .9s ease}
-.card:hover .imgbox img{filter:saturate(1)}
 .link{gap:14px}.link:hover{gap:20px}
 @media(prefers-reduced-motion:reduce){.marquee-track{animation:none!important}}
 
-/* ================= carousel ================= */
-.car-track{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:relative;cursor:grab;overscroll-behavior-x:contain}
-.car-track::-webkit-scrollbar{display:none}
-.car-track.drag{scroll-snap-type:none;scroll-behavior:auto;cursor:grabbing;user-select:none}
-.car-track img{-webkit-user-drag:none;user-select:none}
-.slide{flex:0 0 82%;scroll-snap-align:start;min-width:0}
-@media(min-width:600px){.slide{flex-basis:calc((100% - 20px)/2)}}
-@media(min-width:900px){.slide{flex-basis:calc((100% - 40px)/3)}}
-.slide-card .meta{margin-top:16px}
-.slide-card p{font-size:.95rem;margin:4px 0 8px}
-.slide-card .btn{width:100%}
-.slide-img{position:relative;overflow:hidden}
-.slide-card:hover .slide-img .imgbox img{transform:scale(1.05)}
-.slide-card:hover .image-arrow{background:var(--pistachio);transform:rotate(45deg)}
 .hi{font-family:var(--serif);color:var(--walnut)}
-.car-ui{display:flex;align-items:center;gap:12px;margin-top:28px}
-.car-bar{flex:1;height:1px;background:rgba(122,90,60,.25);position:relative;margin-right:8px}
-.car-bar i{position:absolute;top:-1px;height:3px;background:var(--gold);transition:left .25s ease-out,width .25s}
-.car-btn{width:48px;height:48px;border-radius:50%;border:1px solid var(--gold);background:var(--ivory);color:var(--espresso);font-size:1.1rem;cursor:pointer;transition:background-color .25s,color .25s,transform .25s,opacity .25s}
-.car-btn:hover:not(:disabled){background:var(--espresso);color:var(--ivory);transform:translateY(-2px)}
-.car-btn:disabled{opacity:.3;cursor:default}
-.car:focus-within .car-track:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
 
-/* ================= icons, carousel, floating buttons ================= */
+/* ================= icons, floating buttons ================= */
 .ic{width:18px;height:18px;flex-shrink:0}
 .btn{gap:10px}
 .link{display:inline-flex;align-items:center}
@@ -344,32 +307,7 @@ html{scroll-padding-top:110px}
 .brand-ftr .brand-copy small{color:#b7a48e;margin:0}
 .ftr .ic-row .ic{margin-top:4px}
 /* art images */
-.card .imgbox img{filter:none}
-.card:hover .imgbox img{filter:none}
-.tiles a{position:relative}
-.tile-ic{position:absolute;inset:0;display:grid;place-items:center;background:rgba(43,30,22,.45);color:var(--ivory);opacity:0;transition:opacity .35s;z-index:2}
-.tile-ic .ic{width:34px;height:34px;transform:scale(.8);transition:transform .4s var(--ease)}
-.tiles a:hover .tile-ic{opacity:1}.tiles a:hover .tile-ic .ic{transform:none}
-.tiles a::after{z-index:3;pointer-events:none}
 .why svg{stroke-width:.75}
-.image-arrow .ic{width:16px;height:16px}
-/* carousel */
-.car-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:26px}
-.car-head h2{margin:0}
-.car-ctrl{display:flex;align-items:center;gap:10px}
-.car-count{font-size:.8rem;letter-spacing:.14em;color:var(--walnut);margin-right:6px}
-.car-btn{width:48px;height:48px;border-radius:50%;border:1px solid var(--gold);background:transparent;color:var(--espresso);display:grid;place-items:center;cursor:pointer;transition:background-color .25s,color .25s,transform .25s var(--ease)}
-.car-btn:hover{background:var(--espresso);color:var(--ivory);transform:scale(1.07)}
-.car-btn:active{transform:scale(.94)}
-.car-track{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:14px 2px 34px;margin:-14px -2px -34px;overscroll-behavior-x:contain}
-.car-track::-webkit-scrollbar{display:none}
-.car-item{flex:0 0 76%;scroll-snap-align:start;min-width:0}
-@media(min-width:600px){.car-item{flex-basis:calc(50% - 10px)}}
-@media(min-width:900px){.car-item{flex-basis:calc(33.333% - 13.4px)}}
-.car-dots{display:flex;justify-content:center;margin-top:42px}
-.car-dot{width:44px;height:44px;border:0;background:none;display:grid;place-items:center;cursor:pointer}
-.car-dot::before{content:'';width:20px;height:2px;background:var(--walnut);opacity:.35;transition:width .4s var(--ease),background-color .3s,opacity .3s}
-.car-dot.on::before{width:40px;background:var(--gold);opacity:1}
 /* floating call + WhatsApp */
 .fab-stack{position:fixed;z-index:60;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:10px;animation:pop .6s 1.2s var(--ease) both}
 .fab{position:relative;border-radius:50%;display:grid;place-items:center;border:1px solid var(--gold);box-shadow:0 6px 18px rgba(43,30,22,.28);transition:transform .3s var(--ease),background-color .3s}
@@ -380,10 +318,6 @@ html{scroll-padding-top:110px}
 .fab-call .ic{width:20px;height:20px}
 .fab:hover{transform:scale(1.1) rotate(-6deg)}
 .fab-wa:hover{background:#245538}.fab-call:hover{background:var(--gold)}
-/* Instagram badge always visible on tiles (no hover needed on phones) */
-.tile-badge{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(247,242,232,.92);color:var(--espresso);display:grid;place-items:center;z-index:2;pointer-events:none;transition:transform .35s var(--ease),background-color .3s}
-.tile-badge .ic{width:18px;height:18px}
-.tiles a:hover .tile-badge{transform:scale(.7);background:var(--gold)}
 
 /* ================= effects from the animation brief (palette unchanged) ================= */
 @keyframes gradShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
@@ -428,10 +362,8 @@ body::before{content:'';position:fixed;inset:0;z-index:2;pointer-events:none;opa
 .levitate-shadow{position:absolute;left:12%;right:12%;bottom:-30px;height:20px;border-radius:50%;background:rgba(43,30,22,.35);filter:blur(10px);animation:levs 6s ease-in-out infinite}
 .hero-badge{position:absolute;left:-30px;bottom:-26px;width:112px;height:112px;z-index:2}
 .badge-spin{width:100%;height:100%;animation:spin 22s linear infinite}
-.badge-rr{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--serif);font-size:30px;color:var(--espresso)}
-.badge-rr i{font-style:italic;color:var(--walnut);margin-left:-5px}
-.badge-rr{display:flex;align-items:center;justify-content:center}
-@media(max-width:700px){.hero-badge{width:88px;height:88px;left:-6px;bottom:-22px}.badge-rr{font-size:24px}}
+.badge-logo{position:absolute;inset:0;margin:auto;height:30%;width:auto}
+@media(max-width:700px){.hero-badge{width:88px;height:88px;left:-6px;bottom:-22px}}
 /* wave dividers with slow drift */
 .wave{position:relative;height:38px;margin:-1px 0;background:var(--from);overflow:hidden}
 .wave::before{content:'';position:absolute;top:0;bottom:0;left:0;width:calc(100% + 1200px);background:var(--to);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 40' preserveAspectRatio='none'><path d='M0 20C200 0 400 0 600 20S1000 40 1200 20V40H0Z'/></svg>") repeat-x 0 0/1200px 100%;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 40' preserveAspectRatio='none'><path d='M0 20C200 0 400 0 600 20S1000 40 1200 20V40H0Z'/></svg>") repeat-x 0 0/1200px 100%;animation:waveMove 18s linear infinite}
@@ -447,22 +379,15 @@ body::before{content:'';position:fixed;inset:0;z-index:2;pointer-events:none;opa
 .dark .btn:hover{background-color:var(--gold);color:var(--espresso)}
 .nav-cta{background-image:linear-gradient(var(--gold),var(--gold));background-repeat:no-repeat;background-position:left;background-size:0% 100%;transition:background-size .5s var(--ease),color .3s,transform .25s,translate .2s ease-out}
 .nav-cta:hover{background-color:var(--espresso);background-size:100% 100%;color:var(--espresso)}
-.soc,.car-btn{transition:background-color .3s,color .3s,transform .3s var(--ease),translate .2s ease-out}
+.soc{transition:background-color .3s,color .3s,transform .3s var(--ease),translate .2s ease-out}
 /* nav underline grows from the centre */
 .main-nav>a:not(.nav-cta)::after{content:'';position:absolute;left:0;right:0;bottom:6px;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:center;transition:transform .4s var(--ease)}
 .main-nav>a:not(.nav-cta):hover::after,.main-nav>a.active::after{transform:scaleX(1)}
-/* product cards: lift + golden glow, pop-out image, shimmer on badge, slide-up button */
-.card{transition:transform .45s var(--ease)}
-.card:hover{transform:translateY(-4px)}
-.card:hover .tilt .imgbox{box-shadow:0 28px 46px -22px rgba(184,149,74,.75)}
-.card:hover .imgbox img{transform:scale(1.08) rotate(-1.2deg)}
-.card:active .tilt{transform:scale(.97)}
+/* product rows: golden glow and pop-out photo on hover, shimmer on the index badge */
+.prod:hover .tilt .imgbox{box-shadow:0 28px 46px -22px rgba(184,149,74,.75)}
+.prod:hover .imgbox img{transform:scale(1.08) rotate(-1.2deg)}
 .image-index{overflow:hidden}
 .image-index::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.85) 50%,transparent 70%);animation:sweep 3.6s ease-in-out infinite}
-@media(hover:hover) and (pointer:fine){
-  .card .btn{opacity:0;transform:translateY(16px);transition:opacity .4s,transform .45s var(--ease),background-size .5s var(--ease),color .35s,translate .2s ease-out}
-  .card:hover .btn,.card:focus-within .btn{opacity:1;transform:none}
-}
 /* custom cursor ring (desktop only) */
 .cursor-ring{position:fixed;left:0;top:0;z-index:90;width:34px;height:34px;border:1px solid var(--gold);border-radius:50%;pointer-events:none;opacity:0;display:grid;place-items:center;color:var(--espresso);transition:opacity .3s,width .35s var(--ease),height .35s var(--ease),background-color .3s}
 .cursor-ring.vis{opacity:1}
@@ -514,9 +439,23 @@ html{scroll-behavior:auto}
 }
 .site-header{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(247,242,232,.98)}
 
-/* ================= range cards: nut photo with the real pack beside it ================= */
+/* ================= range rows: nut photo with the real pack beside it ================= */
 .pack{position:absolute;right:7%;bottom:9%;height:80%;width:auto;z-index:1;border-radius:2px;pointer-events:none;box-shadow:9px 14px 24px -12px rgba(43,30,22,.6),0 2px 5px rgba(43,30,22,.18);transform:rotate(3deg);transform-origin:50% 100%;transition:transform .6s var(--ease),box-shadow .6s}
-.card:hover .pack{transform:translateY(-8px);box-shadow:12px 24px 32px -14px rgba(43,30,22,.55),0 2px 5px rgba(43,30,22,.18)}
-.card .hi{font-size:.8em}
-.card .meta+p{font-size:.92rem;line-height:1.5}
-@media(prefers-reduced-motion:reduce){.card:hover .pack{transform:rotate(3deg)}}
+.prod:hover .pack{transform:translateY(-8px);box-shadow:12px 24px 32px -14px rgba(43,30,22,.55),0 2px 5px rgba(43,30,22,.18)}
+@media(prefers-reduced-motion:reduce){.prod:hover .pack{transform:rotate(3deg)}}
+
+/* ================= Oct 2026 change request ================= */
+/* Our range: one product per row, the photo switching sides on wide screens (no carousel) */
+.prod:first-of-type{padding-top:12px}
+.prod h3{font-size:clamp(1.9rem,4.5vw,2.6rem)}
+.prod .btn{margin-top:22px}
+@media(max-width:599px){.prod>div:last-child{max-width:360px;margin-inline:auto;width:100%}}
+@media(min-width:600px) and (max-width:879px){.prod>div:last-child{max-width:420px;margin-inline:auto;width:100%}}
+@media(max-width:599px){.prod .btn{width:100%}}
+/* On Instagram: one round icon button */
+.ig-btn{width:88px;height:88px;margin:14px auto 14px;border-radius:50%;border:1px solid var(--gold);background:var(--ivory);color:var(--espresso);display:grid;place-items:center;transition:background-color .3s,color .3s,transform .35s var(--ease),translate .2s ease-out}
+.ig-btn .ic{width:36px;height:36px}
+.ig-btn:hover{background:var(--espresso);color:var(--ivory);transform:scale(1.06)}
+.ig-btn:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+/* The footer now ends 10 px below the copyright line, so keep that line clear of the floating call and WhatsApp buttons */
+.legal{padding-right:84px}

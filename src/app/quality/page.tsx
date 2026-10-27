@@ -19,7 +19,7 @@ export default function Quality() {
     <Section tone="alt">
       <h2>Where our dry fruits come from</h2>
       {!site.originsConfirmed && <p className="note">Draft for client confirmation. These are typical premium origins. Remove this note and set originsConfirmed to true in data/site.ts after approval.</p>}
-      <div className="grid4 stagger">{products.map(p => <div key={p.slug}><Img src={p.macro} alt={p.name} ratio="3/2" /><h3 style={{ marginTop: 14 }}>{p.name}</h3><hr className="rule" /><p className="muted">{p.origin}</p></div>)}</div>
+      <div className="grid4 stagger">{products.map(p => <div key={p.slug}><Img src={p.originPhoto} alt={`${p.name} in a wooden bowl`} ratio="3/2" /><h3 style={{ marginTop: 14 }}>{p.name}</h3><hr className="rule" /><p className="muted">{p.origin}</p></div>)}</div>
     </Section>
     <Section>
       <h2>How we pick</h2>

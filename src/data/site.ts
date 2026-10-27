@@ -13,6 +13,6 @@ export const site = {
   instagramHandle: '@real_rich_india',
   mapLink: 'https://share.google/Bp9zqtGAb9ez7d8Ty',
   hours: '', // PENDING from client, e.g. "Mon to Sat, 10 am to 8 pm". Hidden while empty.
-  originsConfirmed: false, // set true once client confirms sourcing origins
+  originsConfirmed: true, // confirmed in the Oct 2026 change request; hides the draft note on Quality
 };
 export const noindex = process.env.NEXT_PUBLIC_NOINDEX === '1';

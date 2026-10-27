@@ -2,8 +2,7 @@ import Link from 'next/link';
 import Img from '@/components/Img';
 import Marquee from '@/components/Marquee';
 import Section from '@/components/Section';
-import ProductCard from '@/components/ProductCard';
-import Carousel from '@/components/Carousel';
+import ProductRow from '@/components/ProductRow';
 import { Blobs, FloatingNuts, ParallaxNut, RotatingBadge, SplitWords, Wave } from '@/components/Effects';
 import WaButton from '@/components/WaButton';
 import { ArrowRightIcon, InstagramIcon } from '@/components/Icons';
@@ -18,7 +17,6 @@ const why = [
   { t: 'Premium grade only', d: 'Only the best size and quality makes the pack.', i: <><circle pathLength={1} cx="12" cy="9" r="5.500" /><path pathLength={1} d="m8.500 13.500-1.500 7.500 5-3 5 3-1.500-7.500" /></> },
   { t: 'Packed fresh', d: 'Sealed to keep the crunch and aroma.', i: <><path pathLength={1} d="M7 4h10l2 3v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7l2-3Z" /><path pathLength={1} d="M5 7h14M9 12.500c1.500-1.500 4.500-1.500 6 0" /></> },
 ];
-const tiles = ['almonds', 'mixed-nuts', 'pistachio', 'raisins'];
 
 export default function Home() {
   return (<>
@@ -41,9 +39,10 @@ export default function Home() {
 
     <Marquee />
 
-    {/* The only product listing on the site: "See our range" and the Products menu link scroll here */}
+    {/* The only product listing on the site, one product per row. "See our range" scrolls here */}
     <Section id="range" tone="alt" decor={<><ParallaxNut n="almond" side="l" top="10%" size={70} speed={0.12} /><ParallaxNut n="raisin" side="r" top="64%" size={62} speed={-0.1} /></>}>
-      <Carousel title="Our range">{products.map((p, i) => <ProductCard key={p.slug} p={p} index={i} />)}</Carousel>
+      <h2>Our range</h2>
+      {products.map((p, i) => <ProductRow key={p.slug} p={p} index={i} />)}
       <p style={{ marginTop: 8 }}><Link className="link" href="/bulk-orders/">Need bulk quantity? <ArrowRightIcon /></Link></p>
     </Section>
 
@@ -74,17 +73,10 @@ export default function Home() {
 
     <Wave from="ivory" to="almond" />
 
-    <Section tone="alt">
+    <Section tone="alt" center>
       <h2>On Instagram</h2>
-      <p style={{ margin: '4px 0 8px' }}><a className="btn ghost" href={site.instagram} target="_blank" rel="noopener noreferrer"><InstagramIcon /> Follow {site.instagramHandle}</a></p>
-      {/* Static tiles linking to the profile. Swap in real post images when available. */}
-      <div className="tiles stagger">{tiles.map(s => (
-        <a key={s} href={site.instagram} target="_blank" rel="noopener noreferrer" aria-label={`Real Rich on Instagram: ${s.replace('-', ' ')}`}>
-          <Img src={`/images/photos/${s}.webp`} alt={`${s.replace('-', ' ')}`} />
-          <span className="tile-badge" aria-hidden="true"><InstagramIcon /></span>
-          <span className="tile-ic" aria-hidden="true"><InstagramIcon /></span>
-        </a>
-      ))}</div>
+      <a className="ig-btn" href={site.instagram} target="_blank" rel="noopener noreferrer" aria-label="Follow Real Rich on Instagram"><InstagramIcon /></a>
+      <p className="muted">{site.instagramHandle}</p>
     </Section>
 
     <Wave from="almond" to="ivory" />
