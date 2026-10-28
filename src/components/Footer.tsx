@@ -10,7 +10,7 @@ export default function Footer() {
     <footer className="ftr">
       <div className="wrap">
         <div>
-          <img className="ftr-logo" src="/logo-light.png" alt="Real Rich Dry Fruits" width="200" height="148" />
+          <img className="ftr-logo" src="/logo-light.png" alt="Real Rich Dry Fruits" width="200" height="133" />
           <p style={{ marginTop: 14 }}>{site.tagline}</p>
           <small>Premium dry fruits, Khandwa, Madhya Pradesh</small>
           <SocialLinks />
