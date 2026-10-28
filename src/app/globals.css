@@ -453,3 +453,5 @@ html{scroll-behavior:auto}
 /* No text selection anywhere (client request). Form fields stay selectable so people can still type in them. */
 html{-webkit-user-select:none;user-select:none}
 input,textarea,select{-webkit-user-select:text;user-select:text}
+/* Footer round icons: the general ".ftr a:hover" gold text colour hid the icon on its gold hover circle, so keep it dark */
+.ftr .soc:hover{color:var(--espresso)}
