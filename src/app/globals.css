@@ -79,9 +79,8 @@ fieldset{border:0}
 .checks{display:flex;flex-wrap:wrap;gap:8px 20px}
 .checks label{display:flex;align-items:center;gap:8px;min-height:44px;color:var(--espresso);font-size:1rem}
 .checks input{width:20px;height:20px;accent-color:var(--espresso)}
-.hp{position:absolute;left:-9999px;height:0;overflow:hidden}
 .thanks{border:1px solid var(--gold);padding:28px;max-width:640px}
-.err{color:#8a2d1f;font-size:.92rem}
+.thanks .btn{margin-top:14px}
 .map{width:100%;height:340px;border:0;filter:saturate(.7)}
 /* footer */
 .ftr{background:var(--espresso);color:var(--ivory);padding:56px 0 10px}
@@ -207,7 +206,6 @@ input:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 
 .checks input{position:absolute;opacity:0;width:1px;height:1px}
 .checks label:has(input:focus-visible){outline:2px solid var(--gold);outline-offset:2px}
 .thanks{animation:rise .7s var(--ease) both}
-.err{animation:rise .4s both}
 
 /* FAQ accordion: smooth open (Chrome/Edge/Safari support; others open instantly) */
 details::details-content{block-size:0;overflow:hidden;opacity:0;transition:block-size .45s var(--ease),opacity .45s,content-visibility .45s allow-discrete}

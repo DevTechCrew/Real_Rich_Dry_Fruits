@@ -2,33 +2,45 @@
 import { useState } from 'react';
 import { products } from '@/data/products';
 import { track } from '@/lib/analytics';
+import { bulkMessage, waLink } from '@/lib/whatsapp';
+import { WhatsAppIcon } from './Icons';
 
+// Sends the enquiry as a prefilled WhatsApp message to Real Rich (no form service or email).
 export default function EnquiryForm({ kind }: { kind: 'bulk' | 'contact' }) {
-  const [state, setState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const [sent, setSent] = useState('');
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    if (fd.get('botcheck')) return; // honeypot
-    const picked = fd.getAll('product');
-    fd.delete('product');
-    if (picked.length) fd.set('products', picked.join(', '));
-    fd.set('access_key', process.env.NEXT_PUBLIC_FORM_KEY || '');
-    if (process.env.NEXT_PUBLIC_FORM_CC) fd.set('ccemail', process.env.NEXT_PUBLIC_FORM_CC);
-    fd.set('subject', `Real Rich website: ${kind === 'bulk' ? 'bulk order' : 'contact'} enquiry`);
-    fd.set('from_name', 'Real Rich website');
-    setState('sending');
-    try {
-      const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd });
-      const j = await r.json();
-      if (j.success) { track('form_submit', { form: kind }); setState('done'); } else setState('error');
-    } catch { setState('error'); }
+    const v = (k: string) => String(fd.get(k) || '').trim();
+    const picked = fd.getAll('product').join(', ');
+    const text = [
+      kind === 'bulk' ? bulkMessage : 'Hi Real Rich, I have an enquiry.',
+      `Name: ${v('name')}`,
+      v('business') && `Business: ${v('business')}`,
+      v('city') && `City: ${v('city')}`,
+      `Phone: ${v('phone')}`,
+      picked && `Products: ${picked}`,
+      v('quantity_kg') && `Quantity: ${v('quantity_kg')} kg`,
+      v('message') && `Message: ${v('message')}`,
+    ].filter(Boolean).join('\n');
+    const url = waLink(text);
+    track('form_submit', { form: kind, channel: 'whatsapp' });
+    // A new tab keeps the site open; if the browser blocks it, open WhatsApp in this tab.
+    const w = window.open(url, '_blank');
+    if (w) w.opener = null; else location.href = url;
+    setSent(url);
   }
-  if (state === 'done')
-    return <div className="thanks" role="status"><h3>Thank you.</h3><p>We have your enquiry and will message you on the phone number you shared.</p></div>;
+  if (sent)
+    return (
+      <div className="thanks" role="status">
+        <h3>Almost done.</h3>
+        <p>Your enquiry is ready in WhatsApp. Press send there and we will reply on WhatsApp.</p>
+        <a className="btn" href={sent} target="_blank" rel="noopener noreferrer"><WhatsAppIcon />Open WhatsApp again</a>
+      </div>
+    );
   const bulk = kind === 'bulk';
   return (
     <form onSubmit={onSubmit}>
-      <div className="hp" aria-hidden="true"><label>Leave empty<input type="text" name="botcheck" tabIndex={-1} autoComplete="off" /></label></div>
       <div><label htmlFor={`n-${kind}`}>Name</label><input id={`n-${kind}`} type="text" name="name" required autoComplete="name" /></div>
       {bulk && <div><label htmlFor="biz">Business name (optional)</label><input id="biz" type="text" name="business" autoComplete="organization" /></div>}
       <div><label htmlFor={`c-${kind}`}>City</label><input id={`c-${kind}`} type="text" name="city" required={bulk} autoComplete="address-level2" /></div>
@@ -40,8 +52,7 @@ export default function EnquiryForm({ kind }: { kind: 'bulk' | 'contact' }) {
         <div><label htmlFor="qty">Approximate quantity (kg)</label><input id="qty" type="number" name="quantity_kg" min="1" inputMode="numeric" /></div>
       </>}
       <div><label htmlFor={`m-${kind}`}>Message</label><textarea id={`m-${kind}`} name="message" /></div>
-      {state === 'error' && <p className="err" role="alert">We could not send this. Please try again or message us on WhatsApp.</p>}
-      <button className="btn" type="submit" disabled={state === 'sending'}>{state === 'sending' ? 'Sending' : 'Send enquiry'}</button>
+      <button className="btn" type="submit"><WhatsAppIcon />Send enquiry</button>
     </form>
   );
 }
