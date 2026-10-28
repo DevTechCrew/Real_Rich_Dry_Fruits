@@ -27,7 +27,7 @@ export default function Header() {
       <div className="wrap nav-wrap">
         <Link href="/" className="brand" aria-label={`${site.name} home`} onClick={() => setOpen(false)}>
           <img className="brand-logo" src="/logo-mark.png" alt="" width="50" height="44" />
-          <img className="brand-word" src="/logo-wordmark.png" alt="" width="125" height="17" />
+          <img className="brand-word" src="/logo-wordmark.png" alt="" width="126" height="17" />
         </Link>
         <button className="menu-toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="main-nav" onClick={() => setOpen(!open)}><span></span><span></span></button>
         <nav id="main-nav" className={`main-nav ${open ? 'is-open' : ''}`} aria-label="Main navigation">

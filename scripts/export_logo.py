@@ -112,7 +112,9 @@ open(os.path.join(PUB, 'logo-mark.svg'), 'w').write(svg_mark)
 full_png = fix(render_pdf(full_c, width_px=1200)); save_png(full_png, 'logo.png')
 light_png = fix(render_svg(crop_svg(svg_light, full_c), full_c, round(600 * full_c.height / full_c.width))); save_png(light_png, 'logo-light.png')
 mark_png = fix(render_pdf(mark_c, height_px=240)); save_png(mark_png, 'logo-mark.png')
-word_png = fix(render_pdf(word_c, width_px=600)); save_png(word_png, 'logo-wordmark.png')
+word_png = fix(render_pdf(word_c, width_px=600))
+word_png = word_png.resize((600, round(600 * word_c.height / word_c.width)), Image.LANCZOS)  # exact aspect, so the preloader docks onto it cleanly
+save_png(word_png, 'logo-wordmark.png')
 
 # ---- icons: gold mark on an espresso tile
 big_mark = fix(render_pdf(mark_c, height_px=1024))
