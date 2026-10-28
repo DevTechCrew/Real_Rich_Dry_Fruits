@@ -1,0 +1,102 @@
+/* ================= Preloader: "The Gilded Seal" (first visit of a session only) =================
+   Markup: components/Intro.tsx. The head script in layout.tsx adds html.intro-on + .intro-hold when it plays,
+   or html.no-intro when it should not (seen this session, or reduced motion). Times are seconds from first paint. */
+.intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;cursor:default;
+  --seal:300px;--coin-h:128px;--name-w:300px;--nut:56px;--orbit-r:192px;
+  animation:icAuto .6s ease 4.6s forwards} /* fallback if scripts never run */
+.intro.ic-live{animation:none}
+.no-intro .intro,.ic-done{display:none!important}
+@keyframes icAuto{to{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){.intro{display:none}}
+@media(max-width:600px){.intro{--seal:236px;--coin-h:100px;--name-w:236px;--nut:42px;--orbit-r:150px}}
+@media(max-height:560px){.ic-stage{scale:.78}}
+
+/* the page underneath waits: no scrolling, header logo hidden (the intro docks into it), hero entrance paused */
+html.intro-on{overflow:hidden;scrollbar-gutter:stable}
+.intro-on .brand-logo,.intro-on .brand-word{opacity:0;transition:none}
+.intro-hold .hero,.intro-hold .hero *{animation-play-state:paused!important}
+
+.ic-defs{position:absolute;width:0;height:0;overflow:hidden}
+/* the intro's clock: IntroExit waits for this to finish (and the page to load) before docking */
+.ic-clock{position:absolute;width:0;height:0;animation:icClock 2.7s linear forwards}
+@keyframes icClock{to{opacity:0}}
+
+/* paper: warm ivory, soft vignette, fine grain */
+.ic-paper{position:absolute;inset:0;background:radial-gradient(130% 95% at 50% 42%,#FCF8F1 0%,#F7F2E8 50%,#ECDFC7 100%)}
+.ic-paper::after{content:'';position:absolute;inset:0;opacity:.2;mix-blend-mode:multiply;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .22 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.ic-stage{position:relative;display:grid;justify-items:center;gap:30px;translate:0 -2vh}
+.ic-seal{position:relative;width:var(--seal);height:var(--seal);perspective:1100px}
+
+/* 1. ring traces itself from the top, engraved line turns in */
+.ic-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ic-ring circle{fill:none;stroke:#C7A25B;stroke-width:1;transform:rotate(-90deg);transform-origin:150px 150px}
+.ic-ring1{stroke-dasharray:918;stroke-dashoffset:918;animation:icDraw 1s cubic-bezier(.65,0,.25,1) .12s forwards}
+.ic-ring2{stroke-opacity:.45;stroke-dasharray:679;stroke-dashoffset:679;animation:icDraw 1.05s cubic-bezier(.65,0,.25,1) .32s forwards}
+.ic-ring text{font:500 10px/1 Inter,system-ui,sans-serif;letter-spacing:.28em;fill:#8B6A45}
+.ic-ringtext{transform-origin:150px 150px;opacity:0;animation:icRingText 1.2s cubic-bezier(.2,.7,.2,1) .55s forwards}
+@keyframes icDraw{to{stroke-dashoffset:0}}
+@keyframes icRingText{from{opacity:0;transform:rotate(-55deg)}to{opacity:1;transform:none}}
+
+/* 2. three dry fruits orbit on a tilted plane (real 3D: they pass in front of and behind the RR), then get pulled in */
+.ic-world{position:absolute;inset:0;transform-style:preserve-3d}
+.ic-orbit{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;animation:icOrbit 1.45s cubic-bezier(.33,.12,.3,1) .08s both}
+.ic-nut,.ic-nut-r,.ic-nut-b,.ic-nut-c{position:absolute;transform-style:preserve-3d}
+.ic-nut{transform:rotateZ(var(--a))}
+.ic-nut-r{animation:icPull 1.45s linear .08s both}
+.ic-nut-b{transform:rotateZ(calc(var(--a) * -1))}
+.ic-nut-c{animation:icOrbitC 1.45s cubic-bezier(.33,.12,.3,1) .08s both}
+.ic-nut-c img{position:absolute;width:var(--nut);height:auto;max-width:none;translate:-50% -50%;opacity:0;filter:drop-shadow(0 6px 8px rgba(90,53,7,.25));animation:icNut 1.45s ease .08s both}
+@keyframes icOrbit{from{transform:rotateX(70deg) rotateZ(-70deg)}to{transform:rotateX(70deg) rotateZ(250deg)}}
+@keyframes icOrbitC{from{transform:rotateZ(70deg) rotateX(-70deg)}to{transform:rotateZ(-250deg) rotateX(-70deg)}}
+@keyframes icPull{0%{transform:translateX(var(--orbit-r))}60%{transform:translateX(calc(var(--orbit-r) * .9));animation-timing-function:cubic-bezier(.55,0,.85,.35)}100%{transform:translateX(0)}}
+@keyframes icNut{0%{opacity:0;scale:.6}18%{opacity:1;scale:1}62%{opacity:1;scale:1}80%{opacity:0;scale:.7}100%{opacity:0;scale:.6}}
+
+/* 3. the RR is struck in gold: an extruded stack of the logo paths flies in from depth, lands, presses into the paper */
+.ic-dock{position:absolute;left:50%;top:50%;width:calc(var(--coin-h) * 1.138);height:var(--coin-h);margin:calc(var(--coin-h) * -.5) 0 0 calc(var(--coin-h) * -.569);transform-style:preserve-3d}
+.ic-coin{position:absolute;inset:0;transform-style:preserve-3d;animation:icCoin 1s cubic-bezier(.2,.75,.25,1) .5s both}
+.ic-coin svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ic-layer{transform:translateZ(calc(var(--i) * -1.05px));opacity:0;animation:icFadeIn .2s linear .5s forwards}
+.ic-face{transform:translateZ(.6px);opacity:0;animation:icFadeIn .2s linear .5s forwards}
+@keyframes icCoin{
+  0%{transform:translate3d(0,-30px,-1200px) rotateX(40deg) rotateY(-210deg) rotateZ(-14deg)}
+  62%{transform:translate3d(0,4px,70px) rotateX(-7deg) rotateY(16deg) rotateZ(1.5deg)}
+  80%{transform:translate3d(0,0,-18px) rotateX(2deg) rotateY(-4deg) scale(.95)}
+  100%{transform:none}}
+@keyframes icFadeIn{to{opacity:1}}
+
+/* the strike: a soft shadow settles under the RR, two ripples run out through the paper, a brief warm glow */
+.ic-press{position:absolute;left:50%;top:58%;width:calc(var(--coin-h) * 1.25);height:calc(var(--coin-h) * .42);margin:calc(var(--coin-h) * -.21) 0 0 calc(var(--coin-h) * -.625);border-radius:50%;
+  background:radial-gradient(closest-side,rgba(120,76,14,.22),rgba(120,76,14,0));filter:blur(5px);opacity:0;animation:icPress 1.4s ease 1.22s forwards}
+.ic-ripple{position:absolute;inset:24%;border-radius:50%;border:1.5px solid rgba(199,162,91,.95);box-shadow:0 0 14px rgba(224,158,39,.22);opacity:0;animation:icRipple 1.15s cubic-bezier(.15,.6,.3,1) 1.28s}
+.ic-ripple2{border-color:rgba(199,162,91,.55);box-shadow:none;animation-delay:1.44s}
+.ic-seal::before{content:'';position:absolute;inset:8%;border-radius:50%;background:radial-gradient(closest-side,rgba(245,203,108,.35),rgba(245,203,108,0));opacity:0;animation:icGlow 1.2s ease 1.26s}
+@keyframes icPress{0%{opacity:0;scale:1.7}14%{opacity:1;scale:.9}100%{opacity:.6;scale:1}}
+@keyframes icRipple{0%{opacity:1;scale:.6}100%{opacity:0;scale:1.75}}
+@keyframes icGlow{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+
+/* 4. foil glint runs across the gold */
+.ic-glint{mix-blend-mode:screen;transform-box:fill-box;transform-origin:center;transform:translateX(-90px) skewX(-22deg);animation:icGlint .95s cubic-bezier(.45,0,.25,1) 1.55s forwards}
+@keyframes icGlint{to{transform:translateX(210px) skewX(-22deg)}}
+
+/* 5. the name rises letter by letter from its baseline; the tagline opens from the centre as its rules draw out */
+.ic-lockup{display:grid;justify-items:center;gap:calc(var(--name-w) * 13.9 / 249.7)}
+.ic-name{display:block;width:var(--name-w);height:auto;aspect-ratio:249.7/33.7;fill:#0E2319;overflow:hidden}
+.ic-l{transform:translateY(36px);animation:icRise .75s cubic-bezier(.2,.85,.25,1) calc(1.45s + var(--k) * 55ms) forwards}
+.ic-tm{fill:#073320;opacity:0;transform-box:fill-box;transform-origin:center;animation:icPop .5s cubic-bezier(.3,1.7,.5,1) 2.05s forwards}
+.ic-tag{display:block;width:var(--name-w);height:auto;aspect-ratio:249.7/12.7;overflow:visible}
+.ic-tl{fill:#073320;opacity:0;animation:icFadeIn .5s ease calc(1.95s + var(--k) * 26ms) forwards}
+.ic-rule{fill:#231F20;transform-box:fill-box;transform:scaleX(0);animation:icRule .8s cubic-bezier(.6,0,.2,1) 1.95s forwards}
+.ic-rule-l{transform-origin:right center}.ic-rule-r{transform-origin:left center}
+@keyframes icRise{to{transform:none}}
+@keyframes icPop{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}
+@keyframes icRule{to{transform:scaleX(1)}}
+
+/* 6. exit (IntroExit.tsx): everything but the RR and the name fades, the paper dissolves, they dock into the header */
+.is-exit .ic-paper{opacity:0;transition:opacity .75s ease .12s}
+.is-exit .ic-ring,.is-exit .ic-tag,.is-exit .ic-press,.is-exit .ic-ripple,.is-exit .ic-seal::before{opacity:0;transition:opacity .28s ease}
+.is-exit .ic-dock,.is-exit .ic-name{will-change:transform}
+/* the foil settles to the flat saffron of the header logo during the flight, so the hand-over is invisible */
+.ic-flat{opacity:0}
+.is-exit .ic-flat{opacity:1;transition:opacity .55s ease .3s}
