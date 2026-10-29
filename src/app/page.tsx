@@ -93,7 +93,7 @@ export default function Home() {
     <Wave from="almond" to="ivory" />
 
     <Section center decor={<Blobs />}>
-      <img className="studio-art cta-art" src="/images/studio/lineup.webp" alt="The four Real Rich packs: almonds, cashew, pistachio and raisins" width={1400} height={498} loading="lazy" decoding="async" />
+      <img className="studio-art cta-art" src="/images/studio/lineup.webp" alt="The four Real Rich packs: almonds, cashew, pistachio and raisins" width={1400} height={499} loading="lazy" decoding="async" />
       <h2>Want the price? Message us on WhatsApp.</h2>
       <div className="actions" style={{ justifyContent: 'center' }}>
         <WaButton className="btn big" href={waLink(generalMessage)} where="final_cta">Enquire on WhatsApp</WaButton>
