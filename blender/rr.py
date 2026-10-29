@@ -640,7 +640,7 @@ def mat_pouch_back(hexcol='#F6E3C4'):
     return m.mat
 
 
-def pouch(art_path, name='pouch', W=16.0, H=23.0, depth=2.6, seal=0.7, top_seal=1.0, seed=0, back_hex='#F6E3C4'):
+def pouch(art_path, name='pouch', W=16.0, H=23.0, depth=2.6, seal=0.7, top_seal=1.0, seed=0, back_hex='#F6E3C4', res=(116, 176)):
     """A filled 16 x 23 cm stand-up pouch standing on z = 0, front facing -y.
     The artwork is mapped by film length, so it is never stretched: the film keeps its width, which pulls the side seals
     in where the pouch bulges, as on a real filled pouch. Heat seals, a zip line, tear notches, creases from the top
@@ -686,8 +686,9 @@ def pouch(art_path, name='pouch', W=16.0, H=23.0, depth=2.6, seal=0.7, top_seal=
         return ts[lo] + (ts[hi] - ts[lo]) * f
 
     # rows (film height) and columns (film across), with exact rows/columns on the seal boundaries
-    vs = [t_top * j / 176 for j in range(177)] + [t_top + (1 - t_top) * j / 8 for j in range(1, 9)]
-    ns, nb = 6, 116
+    nb, nr = res                            # columns across the bulge, rows below the top seal (lower for real-time models)
+    ns, nt_ = (6, 8) if nb >= 80 else (2, 2)
+    vs = [t_top * j / nr for j in range(nr + 1)] + [t_top + (1 - t_top) * j / nt_ for j in range(1, nt_ + 1)]
     ss = ([-W / 2 + seal * i / ns for i in range(ns)] + [-Wb / 2 + Wb * i / nb for i in range(nb)] +
           [Wb / 2 + seal * i / ns for i in range(ns + 1)])
     zs = [0.0]

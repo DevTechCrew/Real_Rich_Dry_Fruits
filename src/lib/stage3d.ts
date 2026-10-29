@@ -1,0 +1,178 @@
+// Live 3D for the site: the Real Rich pouch, and for the hero the four dry fruits riding a ring round it, lit like the
+// Blender studio (blender/rr.py): key light top left, cool fill right, rim behind, Khronos PBR Neutral tone mapping.
+// Loaded on demand by components/Stage3D.tsx, so three.js never weighs on the first paint. Models: blender/export_models.py.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+
+type V3 = [number, number, number];
+export type NutKind = 'almond' | 'cashew' | 'pistachio' | 'raisin';
+export type HeroSpec = {
+  camera: { fov: number; position: V3; target: V3 };
+  pouch: { slug: string; position: V3; rotationY: number };
+  ring: { y: number; tilt: number; period: number };
+  nuts: { kind: NutKind; r: number; a: number; h: number; rot: V3; spin: number; scale: number }[];
+};
+export type StageOptions = { mode: 'hero'; spec: HeroSpec } | { mode: 'pack'; slug: string };
+type Hooks = { interactEl: HTMLElement; onReady: () => void; onLost: () => void };
+
+const D = Math.PI / 180;
+const loader = new GLTFLoader();
+let pouchModel: Promise<THREE.Object3D> | null = null;
+let nutModels: Promise<Partial<Record<NutKind, THREE.Mesh>>> | null = null;
+const arts = new Map<string, Promise<THREE.Texture>>();
+
+const loadPouch = () => (pouchModel ??= loader.loadAsync('/models/pouch.glb').then(g => g.scene));
+const loadNuts = () => (nutModels ??= loader.loadAsync('/models/nuts.glb').then(g => {
+  const out: Partial<Record<NutKind, THREE.Mesh>> = {};
+  g.scene.traverse(o => { if ((o as THREE.Mesh).isMesh) out[o.name as NutKind] = o as THREE.Mesh; });
+  return out;
+}));
+const loadArt = (slug: string) => {
+  if (!arts.has(slug)) arts.set(slug, new THREE.TextureLoader().loadAsync(`/models/art-${slug}.webp`).then(t => {
+    t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.anisotropy = 8; return t; // glTF UVs, so no flip
+  }));
+  return arts.get(slug)!;
+};
+
+/** A soft round contact shadow: a radial gradient on a plane, cheaper and softer than a shadow map. */
+function blobShadow(w: number, d: number, opacity: number) {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d')!; const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(43,30,22,1)'); grad.addColorStop(0.45, 'rgba(43,30,22,.5)'); grad.addColorStop(1, 'rgba(43,30,22,0)');
+  g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, opacity, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.position.y = 0.02; m.renderOrder = -1;
+  return m;
+}
+
+/** Mounts a live stage on `canvas`; returns a function that stops and frees it. Calls onReady once the first frame is drawn. */
+export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks: Hooks): () => void {
+  let renderer: THREE.WebGLRenderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  } catch { return () => {}; } // no WebGL: the poster image stays
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, coarse ? 1.5 : 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.15;
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55;
+  const light = (color: number, intensity: number, from: V3) => { const l = new THREE.DirectionalLight(color, intensity); l.position.set(...from); scene.add(l); };
+  light(0xfff1e2, 2.6, [-34, 42, 26]); light(0xe8efff, 0.55, [40, 14, 18]); light(0xfff6ea, 0.9, [10, 26, -36]);
+
+  const camera = new THREE.PerspectiveCamera(26, 1, 1, 600);
+  const pivot = new THREE.Group(); scene.add(pivot);        // the pouch turns inside this
+  const ring = new THREE.Group(); scene.add(ring);          // the hero's nuts ride this
+  const nuts: { mesh: THREE.Mesh; q0: THREE.Quaternion; spec: HeroSpec['nuts'][number]; i: number }[] = [];
+  let baseYaw = 0, sway = 5, reach = 26, ringSpec: HeroSpec['ring'] | null = null;
+
+  // interaction: the pouch turns toward the pointer; a drag spins it, then it eases back
+  let px = 0, py = 0, spin = 0, vel = 0, dragging = false, lastX = 0;
+  let hold = 0.95;                                          // stay on the poster's pose while the canvas fades in over it
+  const el = hooks.interactEl;
+  const onMove = (e: PointerEvent) => {
+    const b = el.getBoundingClientRect();
+    px = Math.max(-1, Math.min(1, ((e.clientX - b.left) / b.width) * 2 - 1)); py = Math.max(-1, Math.min(1, ((e.clientY - b.top) / b.height) * 2 - 1));
+    if (dragging && hold <= 0) { const dx = e.clientX - lastX; lastX = e.clientX; spin += dx * 0.012; vel = dx * 0.012; }
+  };
+  const onLeave = () => { px = 0; py = 0; };
+  const onDown = (e: PointerEvent) => { dragging = true; lastX = e.clientX; vel = 0; canvas.setPointerCapture(e.pointerId); };
+  const onUp = () => { dragging = false; };
+  el.addEventListener('pointermove', onMove); el.addEventListener('pointerleave', onLeave);
+  canvas.addEventListener('pointerdown', onDown); canvas.addEventListener('pointerup', onUp); canvas.addEventListener('pointercancel', onUp);
+
+  let disposed = false, visible = true, raf = 0, ready = false, t = 0, last = 0;
+  const resize = () => {
+    const w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  };
+  const ro = new ResizeObserver(resize); ro.observe(canvas);
+  const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && ready) loop(performance.now()); });
+  io.observe(canvas);
+
+  const frame = (dt: number) => {
+    const holding = hold > 0;                                 // the poster's pose: no time, no pointer, nuts at their start
+    if (holding) { hold -= dt; dt = 0; } else t += dt;
+    if (!dragging && !holding) {                             // inertia, then ease back the short way round
+      spin += vel; vel *= Math.pow(0.05, dt);
+      if (Math.abs(vel) < 0.002) { spin = Math.atan2(Math.sin(spin), Math.cos(spin)); spin *= Math.pow(0.15, dt); }
+    }
+    const k = 1 - Math.pow(0.02, dt);                         // smooth pointer follow (0 while holding)
+    pivot.rotation.y += ((baseYaw + Math.sin(t * 0.45) * sway * D + px * reach * D + spin) - pivot.rotation.y) * k;
+    pivot.rotation.x += ((py * 4 * D) - pivot.rotation.x) * k;
+    pivot.position.y = Math.sin(t * 0.9) * 0.25;
+    if (ringSpec) {
+      ring.rotation.y += ((px * 5 * D) - ring.rotation.y) * k; ring.rotation.x += ((py * 3 * D) - ring.rotation.x) * k;
+      const tilt = ringSpec.tilt * D, turn = (t / ringSpec.period) * Math.PI * 2;
+      for (const n of nuts) {
+        const a = n.spec.a * D + turn;
+        n.mesh.position.set(n.spec.r * Math.cos(a), ringSpec.y + n.spec.h - n.spec.r * Math.sin(a) * Math.sin(tilt) + (Math.sin(t * 0.8 + n.i) - Math.sin(n.i)) * 0.35, n.spec.r * Math.sin(a) * Math.cos(tilt));
+        n.mesh.quaternion.copy(n.q0).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), n.spec.spin * D * t));
+      }
+    }
+    renderer.render(scene, camera);
+  };
+  const loop = (now: number) => {
+    cancelAnimationFrame(raf);
+    const step = (ts: number) => {
+      if (disposed || !visible || document.hidden) return;
+      const dt = Math.min(0.05, (ts - (last || ts)) / 1000); last = ts; frame(dt);
+      raf = requestAnimationFrame(step);
+    };
+    last = now; raf = requestAnimationFrame(step);
+  };
+  const onVis = () => { if (!document.hidden && visible && ready) loop(performance.now()); };
+  document.addEventListener('visibilitychange', onVis);
+  canvas.addEventListener('webglcontextlost', hooks.onLost);
+
+  const slug = opts.mode === 'hero' ? opts.spec.pouch.slug : opts.slug;
+  Promise.all([loadPouch(), loadArt(slug), opts.mode === 'hero' ? loadNuts() : Promise.resolve(null)]).then(([pouchSrc, art, nutSrc]) => {
+    if (disposed) return;
+    const pouch = pouchSrc.clone(true);
+    pouch.traverse(o => {
+      const m = o as THREE.Mesh; if (!m.isMesh) return;
+      const mats = (Array.isArray(m.material) ? m.material : [m.material]).map(mt => {
+        const s = (mt as THREE.MeshStandardMaterial).clone();
+        if (s.name === 'front') { s.map = art; s.color.set(0xffffff); }
+        s.roughness = 0.55; s.envMapIntensity = 1; return s;
+      });
+      m.material = Array.isArray(m.material) ? mats : mats[0];
+    });
+    const box = new THREE.Box3().setFromObject(pouch); const top = box.max.y;
+    pivot.add(pouch);
+    if (opts.mode === 'pack') {
+      // the same framing as the static pack render (blender/render_packs.py): 85 mm, 7 degrees up, pouch 82% of the height
+      baseYaw = -10 * D; sway = 4; reach = 28;
+      const fov = 2 * Math.atan(18 / 85), frameH = top / 0.82, ty = top + 0.05 * frameH - frameH / 2, dist = frameH / 2 / Math.tan(fov / 2);
+      camera.fov = fov / D; camera.position.set(0, ty + Math.sin(7 * D) * dist, Math.cos(7 * D) * dist); camera.lookAt(0, ty, 0);
+      scene.add(blobShadow(22, 9, 0.38));
+    } else {
+      const s = opts.spec;
+      baseYaw = s.pouch.rotationY * D; pivot.position.set(...s.pouch.position);
+      camera.fov = s.camera.fov; camera.position.set(...s.camera.position); camera.lookAt(...s.camera.target);
+      scene.add(blobShadow(26, 11, 0.32));
+      ringSpec = s.ring;
+      s.nuts.forEach((spec, i) => {
+        const src = nutSrc?.[spec.kind]; if (!src) return;
+        const mesh = new THREE.Mesh(src.geometry, src.material); mesh.scale.setScalar(spec.scale);
+        const q0 = new THREE.Quaternion().setFromEuler(new THREE.Euler(spec.rot[0] * D, spec.rot[1] * D, spec.rot[2] * D));
+        ring.add(mesh); nuts.push({ mesh, q0, spec, i });
+      });
+    }
+    pivot.rotation.y = baseYaw;
+    resize(); frame(0); ready = true; hooks.onReady(); loop(performance.now());
+  }).catch(e => console.warn('3D stage could not load, keeping the image', e));
+
+  return () => {
+    disposed = true; cancelAnimationFrame(raf); ro.disconnect(); io.disconnect();
+    document.removeEventListener('visibilitychange', onVis);
+    el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave);
+    canvas.removeEventListener('pointerdown', onDown); canvas.removeEventListener('pointerup', onUp); canvas.removeEventListener('pointercancel', onUp);
+    canvas.removeEventListener('webglcontextlost', hooks.onLost);
+    pmrem.dispose(); renderer.dispose(); renderer.forceContextLoss();   // hand the GPU context back now, not at GC
+  };
+}

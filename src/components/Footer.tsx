@@ -8,6 +8,7 @@ import WaButton from './WaButton';
 export default function Footer() {
   return (
     <footer className="ftr">
+      <img className="ftr-nuts" src="/images/studio/footer.webp" alt="" aria-hidden="true" width={760} height={78} loading="lazy" decoding="async" />
       <div className="wrap">
         <div>
           <img className="ftr-logo" src="/logo-light.png" alt="Real Rich Dry Fruits" width="200" height="133" />

@@ -8,7 +8,8 @@ export const metadata: Metadata = { title: 'Contact', description: 'Contact Real
 export default function Contact() {
   return (<>
     <Section>
-      <h1>Contact</h1><hr className="rule" />
+      <div className="contact-head"><div><h1>Contact</h1><hr className="rule" /></div>
+        <img className="contact-pin" src="/images/studio/pin.webp" alt="" aria-hidden="true" width={480} height={400} decoding="async" /></div>
       <div className="two">
         <address style={{ fontStyle: 'normal' }}>
           <p className="ic-row"><PinIcon /><span>{site.address}</span></p>

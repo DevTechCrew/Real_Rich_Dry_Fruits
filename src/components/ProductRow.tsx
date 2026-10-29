@@ -2,6 +2,7 @@ import { Product } from '@/data/products';
 import { productMessage, waLink } from '@/lib/whatsapp';
 import Img from './Img';
 import Tilt from './Tilt';
+import Stage3D from './Stage3D';
 import WaButton from './WaButton';
 // One product per row in "Our range" on Home. On wide screens the photo switches sides from row to row.
 export default function ProductRow({ p, index = 0 }: { p: Product; index?: number }) {
@@ -9,8 +10,8 @@ export default function ProductRow({ p, index = 0 }: { p: Product; index?: numbe
     <article className="prod">
       <Tilt>
         <Img src={p.image} alt={p.name} ratio="3/2" />
-        {/* The real pack, as designed. Never edit it with AI. */}
-        <img className="pack" src={p.pack} alt={`Real Rich ${p.name} ${p.size} pack`} width="480" height="690" loading="lazy" decoding="async" />
+        {/* The real pack, as designed (never edit it with AI): a 3D render that turns live on desktop */}
+        <Stage3D className="pack" opts={{ mode: 'pack', slug: p.slug }} poster={p.pack} alt={`Real Rich ${p.name} ${p.size} pack`} width={480} height={690} interactWith=".prod" desktopOnly />
         <span className="image-index" aria-hidden="true">0{index + 1}</span>
       </Tilt>
       <div>
