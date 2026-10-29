@@ -1,19 +1,19 @@
 {
-  "note": "Hero 3D stage, shared by src/lib/stage3d.ts (live) and blender/render_stage.py (poster). Units are cm, Y up, the pouch front faces +Z. Each nut rides a ring round the pouch: r radius, a start angle (90 = in front), h height offset, rot start rotation (deg, three.js XYZ; about 90 on X turns a nut's broad face to the camera), spin (deg/s), scale.",
-  "camera": { "fov": 26, "position": [0, 13, 72], "target": [0, 11.2, 0] },
-  "pouch": { "slug": "almonds", "position": [0, 0.8, 0], "rotationY": -16 },
-  "ring": { "y": 11.5, "tilt": 15, "period": 60 },
+  "note": "Hero 3D stage, shared by src/lib/stage3d.ts (live) and blender/export_web.py stage (the poster: the Blender pouch from blender/render_stage.py plus these nuts). Units are cm, Y up, the pouch front faces +Z. Each nut is a photographed cut-out (public/images/photos/fly/{kind}[-pose].webp) on a card facing the camera, riding a ring round the pouch: r radius, a start angle (90 = in front), h height offset, roll its turn in the picture plane (deg, counter-clockwise), rock how far it sways (deg), size the card's long side.",
+  "camera": {"fov": 26, "position": [0, 13, 72], "target": [0, 11.2, 0]},
+  "pouch": {"slug": "almonds", "position": [0, 0.8, 0], "rotationY": -16},
+  "ring": {"y": 11.5, "tilt": 15, "period": 60},
   "nuts": [
-    { "kind": "almond", "r": 14, "a": 186, "h": 5.5, "rot": [75,  20,  40], "spin": 18, "scale": 2.3 },
-    { "kind": "cashew", "r": 15, "a": 160, "h": -4.5, "rot": [85,  -10,  160], "spin": -14, "scale": 2.1 },
-    { "kind": "pistachio", "r": 13.5, "a": 226, "h": 0.5, "rot": [70,  15,  -20], "spin": 22, "scale": 2.3 },
-    { "kind": "raisin", "r": 13, "a": 122, "h": -5, "rot": [80,  -20,  30], "spin": -20, "scale": 2.5 },
-    { "kind": "almond", "r": 14.5, "a": 66, "h": -5, "rot": [95,  25,  -40], "spin": 16, "scale": 2.3 },
-    { "kind": "pistachio", "r": 14, "a": 14, "h": -3.5, "rot": [65,  -30,  10], "spin": -18, "scale": 2.3 },
-    { "kind": "cashew", "r": 14, "a": 346, "h": 5, "rot": [100,  15,  40], "spin": 15, "scale": 2.1 },
-    { "kind": "raisin", "r": 15, "a": 316, "h": 8, "rot": [85,  10,  -30], "spin": 24, "scale": 2.5 },
-    { "kind": "almond", "r": 13, "a": 286, "h": 9.5, "rot": [70,  -25,  20], "spin": -12, "scale": 2.2 },
-    { "kind": "cashew", "r": 12.5, "a": 252, "h": 10, "rot": [90,  20,  -60], "spin": 20, "scale": 2.0 },
-    { "kind": "raisin", "r": 14, "a": 36, "h": 9, "rot": [75,  30,  10], "spin": -16, "scale": 2.4 }
+    {"kind": "almond", "pose": 1, "r": 14, "a": 186, "h": 5.5, "roll": 12, "rock": 9, "size": 5.6},
+    {"kind": "cashew", "pose": 1, "r": 15, "a": 160, "h": -4.5, "roll": -10, "rock": 8, "size": 5.6},
+    {"kind": "pistachio", "pose": 1, "r": 13.5, "a": 226, "h": 0.5, "roll": 14, "rock": 10, "size": 5.2},
+    {"kind": "raisin", "pose": 1, "r": 13, "a": 122, "h": -5, "roll": -16, "rock": 11, "size": 4.8},
+    {"kind": "almond", "pose": 2, "r": 14.5, "a": 66, "h": -5, "roll": -8, "rock": 9, "size": 5.6},
+    {"kind": "pistachio", "pose": 2, "r": 14, "a": 14, "h": -3.5, "roll": 8, "rock": 10, "size": 5.2},
+    {"kind": "cashew", "pose": 2, "r": 14, "a": 346, "h": 5, "roll": 14, "rock": 8, "size": 5.4},
+    {"kind": "raisin", "pose": 2, "r": 15, "a": 316, "h": 8, "roll": -10, "rock": 12, "size": 4.8},
+    {"kind": "almond", "pose": 3, "r": 13, "a": 286, "h": 9.5, "roll": 18, "rock": 8, "size": 5.4},
+    {"kind": "cashew", "pose": 3, "r": 12.5, "a": 252, "h": 10, "roll": -14, "rock": 9, "size": 5.2},
+    {"kind": "raisin", "pose": 3, "r": 14, "a": 36, "h": 9, "roll": 8, "rock": 11, "size": 4.6}
   ]
 }

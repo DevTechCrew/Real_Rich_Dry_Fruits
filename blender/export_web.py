@@ -1,6 +1,6 @@
 # Turns the raw Blender renders (blend-src/out, rendered at 2x) into the site's files in public/.
-# Run with the system Python (needs Pillow):  python3 blender/export_web.py [packs] [fly] [scenes]
-import json, os, sys
+# Run with the system Python (needs Pillow):  python3 blender/export_web.py [packs] [art] [stage] [sections] [hero] [og]
+import json, math, os, sys
 import numpy as np
 from PIL import Image, ImageChops, ImageDraw
 
@@ -15,11 +15,12 @@ def resize(im, size):
     return im.convert('RGBa').resize(size, Image.LANCZOS).convert('RGBA')
 
 
-def save_webp(im, path, quality, budget_kb):
+def save_webp(im, path, quality, budget_kb, exact=False):
+    """exact keeps the colours under transparent pixels (cut-outs bled with cutouts.bleed, for WebGL mipmaps)."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     q = quality
     while True:
-        im.save(path, 'WEBP', quality=q, method=6, alpha_quality=90)
+        im.save(path, 'WEBP', quality=q, method=6, alpha_quality=90, exact=exact)
         kb = os.path.getsize(path) / 1024
         if kb <= budget_kb or q <= 60:
             break
@@ -59,16 +60,6 @@ def packs():
         save_webp(resize(fade_shadow(im), (480, 690)), os.path.join(PUB, 'packs', f'{slug}.webp'), 88, 70)
 
 
-def fly():
-    """Cut-outs: crop to the nut with a little air, 400 px wide (sharp at 3x for the largest 120 px slot)."""
-    for name in sorted(f[:-4] for f in os.listdir(os.path.join(OUT, 'fly')) if f.endswith('.png')):
-        im = Image.open(os.path.join(OUT, 'fly', f'{name}.png')).convert('RGBA')
-        x0, y0, x1, y1 = im.getchannel('A').point(lambda a: 255 if a > 8 else 0).getbbox()
-        pad = int(0.04 * max(x1 - x0, y1 - y0))
-        im = im.crop((max(0, x0 - pad), max(0, y0 - pad), min(im.width, x1 + pad), min(im.height, y1 + pad)))
-        save_webp(resize(im, (400, round(400 * im.height / im.width))), os.path.join(PUB, 'photos', 'fly', f'{name}.webp'), 86, 60)
-
-
 def art():
     """The four front artworks for the real-time pouch (three.js), untouched, 1024 px tall."""
     for slug in SLUGS:
@@ -76,9 +67,26 @@ def art():
         save_webp(im.resize((round(1024 * im.width / im.height), 1024), Image.LANCZOS), os.path.join(PROJECT, 'public', 'models', f'art-{slug}.webp'), 90, 110)
 
 
+def _cards(spec, W, H):
+    """The hero's photographed nuts at t = 0, placed as src/lib/stage3d.ts draws them: cards facing the camera, so each
+    one projects to its cut-out, scaled by distance and turned by its roll. Yields (depth, x, y, long side px, roll, name)."""
+    cam = np.array(spec['camera']['position'], float)
+    fwd = np.array(spec['camera']['target'], float) - cam; fwd /= np.linalg.norm(fwd)
+    right = np.cross(fwd, (0, 1, 0)); right /= np.linalg.norm(right); up = np.cross(right, fwd)
+    f = H / 2 / math.tan(math.radians(spec['camera']['fov']) / 2)
+    ring = spec['ring']; tilt = math.radians(ring['tilt'])
+    yield (np.array(spec['pouch']['position'], float) - cam) @ fwd, 0, 0, 0, 0, None      # the pouch's own depth
+    for n in spec['nuts']:
+        a = math.radians(n['a'])
+        p = np.array((n['r'] * math.cos(a), ring['y'] + n['h'] - n['r'] * math.sin(a) * math.sin(tilt), n['r'] * math.sin(a) * math.cos(tilt))) - cam
+        z = p @ fwd
+        yield z, W / 2 + f * (p @ right) / z, H / 2 - f * (p @ up) / z, f * n['size'] / z, n['roll'], n['kind'] + (f"-{n['pose']}" if n['pose'] > 1 else '')
+
+
 def stage():
     """Hero stage poster (blender/render_stage.py): keep the soft shadow under the floating pack, fade the rest of the
-    shadow catcher's floor shading out, so the transparent image sits cleanly on the hero background."""
+    shadow catcher's floor shading out, so the transparent image sits cleanly on the hero background. Then the ring of
+    photographed nuts (blender/cutouts.py masters), painted far to near round the pouch: over its shadow, as three.js does."""
     src = os.path.join(OUT, 'stage', 'hero-stage.png')
     bx, by = json.load(open(src[:-4] + '.json'))['base']
     a = np.asarray(Image.open(src).convert('RGBA')).astype(np.float32)
@@ -87,7 +95,18 @@ def stage():
     shadow = (a[..., 3] > 0) & (a[..., 3] < 255) & (a[..., :3].max(axis=2) <= 6)
     f = np.clip(1 - (((xx - bx) / (W * 0.26)) ** 2 + ((yy - by) / (H * 0.1)) ** 2), 0, 1) ** 1.5
     a[..., 3] = np.where(shadow, np.minimum(255, a[..., 3] * 1.2) * f, a[..., 3])
-    save_webp(Image.fromarray(a.astype(np.uint8)), os.path.join(PUB, 'photos', 'hero-stage.webp'), 86, 150)
+    layer = lambda x: Image.fromarray(x.astype(np.uint8))
+    spec = json.load(open(os.path.join(PROJECT, 'src', 'data', 'stage.json')))
+    m = 300                                                          # margin, so a card may run off the frame
+    im = Image.new('RGBA', (W + 2 * m, H + 2 * m)); im.alpha_composite(layer(np.where(shadow[..., None], a, 0)), (m, m))
+    for z, x, y, s, roll, name in sorted(_cards(spec, W, H), key=lambda c: -c[0]):
+        if name is None:
+            im.alpha_composite(layer(np.where(shadow[..., None], 0, a)), (m, m)); continue
+        card = Image.open(os.path.join(os.path.dirname(PROJECT), 'blend-src', 'photo', 'cut', f'{name}.png')).convert('RGBA')
+        k = s / max(card.size); card = resize(card, (round(card.width * k), round(card.height * k)))
+        card = card.convert('RGBa').rotate(roll, Image.BICUBIC, expand=True).convert('RGBA')
+        im.alpha_composite(card, (round(m + x - card.width / 2), round(m + y - card.height / 2)))
+    save_webp(im.crop((m, m, m + W, m + H)), os.path.join(PUB, 'photos', 'hero-stage.webp'), 86, 170)
 
 
 def _crop_object(im, pad=0.04, keep_shadow=0.35):
@@ -130,23 +149,6 @@ def sections():
         save_webp(out, dst(f'{name}.webp'), 86, budget)
     flat = src('flatlay').convert('RGB')
     save_webp(flat.resize((1400, 700), Image.LANCZOS), dst('flatlay.webp'), 82, 150); sizes['flatlay'] = (1400, 700)
-    # the levitating dry fruits: four slices, one nut each, so each can float on its own beat
-    pr = _crop_object(src('promise'), pad=0.03, keep_shadow=0)
-    pr = resize(pr, (1400, round(1400 * pr.height / pr.width)))
-    al = np.asarray(pr.getchannel('A')) > 8; cols = al.any(axis=0)
-    runs, inside = [], False
-    for x, c in enumerate(cols):
-        if c and not inside:
-            start, inside = x, True
-        elif not c and inside:
-            runs.append((start, x)); inside = False
-    if inside:
-        runs.append((start, len(cols)))
-    runs = sorted(sorted(runs, key=lambda r: r[1] - r[0], reverse=True)[:4])   # the four nuts
-    cuts = [0] + [(runs[i][1] + runs[i + 1][0]) // 2 for i in range(3)] + [pr.width]
-    for i in range(4):
-        piece = pr.crop((cuts[i], 0, cuts[i + 1], pr.height))
-        save_webp(piece, dst(f'promise-{i + 1}.webp'), 86, 40); sizes[f'promise-{i + 1}'] = piece.size
     for f in sorted(os.listdir(dst('icons'))):
         sizes[f'icon-{f[:-5]}'] = Image.open(dst(f'icons/{f}')).size
     json.dump(sizes, open(os.path.join(OUT, 'sections', 'sizes.json'), 'w'), indent=1)   # for the img width/height attributes

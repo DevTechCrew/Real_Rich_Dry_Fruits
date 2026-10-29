@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 const v = (o: Record<string, string | number>) => o as CSSProperties;
 
 // Falls in once with a bounce, then drifts. Extras are hidden on phones (class "x").
-// Single-nut cut-outs rendered in Blender (blender/render_fly.py): {nut}, {nut}-2, {nut}-3 are three poses.
+// Single photographed nuts, cut out by blender/cutouts.py: {nut}, {nut}-2, {nut}-3 are three poses.
 const NUTS: [string, number, number, number, number, boolean][] = [
   ['almond', 1, 8, 84, 0.2, true], ['cashew-2', 40, 3, 68, 0.55, false], ['pistachio', 91, 7, 78, 0.9, true],
   ['cashew', 34, 83, 76, 0.4, true], ['raisin-3', 46, 88, 58, 1.1, false], ['almond-3', 92, 78, 70, 0.7, false],

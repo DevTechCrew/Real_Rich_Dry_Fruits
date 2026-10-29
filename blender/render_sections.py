@@ -1,6 +1,5 @@
 # Studio renders for the sections that had no pictures, in the shared studio (rr.py):
 #   icons    enamel-and-gold medallions for the icon cards (Why Real Rich, About values, Quality steps)
-#   promise  the four dry fruits levitating, rim-lit, for the dark promise band
 #   crate    a wooden crate of pouches (bulk orders)
 #   lineup   the four packs in a gentle arc with their dry fruits (final call to action)
 #   flatlay  the packs and dry fruits from above on linen (Instagram)
@@ -8,7 +7,7 @@
 #   pin      a gold map pin over a few dry fruits (Contact)
 #   footer   dry fruits resting on the footer's top edge
 # Renders into blend-src/out/sections; blender/export_web.py (sections) writes public/images/studio/.
-#   blender -b --factory-startup -P blender/render_sections.py -- [icons promise ...] [--draft]
+#   blender -b --factory-startup -P blender/render_sections.py -- [icons crate ...] [--draft]
 import os, sys, math, random
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import rr
@@ -118,21 +117,6 @@ def icons():
         rr.camera((0, -math.sin(tilt) * 40, math.cos(tilt) * 40), (0, 0, 0), ortho=5.3)
         rr.studio(target=(0, 0, 0), dist=0.45, hdri_strength=0.45)
         save(f'icon-{name}')
-
-
-# ---------------------------------------------------------------- levitating dry fruits on the dark band
-def promise():
-    setup(2200, 760)
-    poses = [('almond', 11, (-6.6, 0, 0.35), (1.2, -0.3, 0.45)), ('cashew', 7, (-2.2, 0.4, -0.45), (1.25, 0.15, 0.35)),
-             ('pistachio', 12, (2.2, 0.2, 0.5), (0.95, 0.12, -0.3)), ('raisin', 2, (6.5, -0.3, -0.3), (1.0, 0.2, 2.95))]
-    for kind, seed, loc, rot in poses:                    # each nut turned to show its face to the camera
-        o = rr.NUT_BUILDERS[kind](seed=seed); mn, mx = rr.bounds(o); o.data.transform(Matrix.Translation(-(mn + mx) / 2))
-        rr.place(o, loc, rot, 1.5)
-    rr.camera((0, -44, 11), (0, 0, 0.1), lens=85)
-    rr.studio(target=(0, 0, 0), dist=0.55, hdri_strength=0.15, key=0.9, fill=0.4)
-    for x in (-1, 1):                                     # warm gold rims from behind, for the dark background
-        rr.area_light(f'rim{x}', (x * 18, 24, 14), (x * 3, 0, 0), 10, 5200, (1.0, 0.76, 0.42))
-    save('promise')
 
 
 # ---------------------------------------------------------------- crate of pouches (bulk)
@@ -262,6 +246,6 @@ def footer():
     save('footer')
 
 
-JOBS = {'icons': icons, 'promise': promise, 'crate': crate, 'lineup': lineup, 'flatlay': flatlay, 'seal': seal, 'pin': pin, 'footer': footer}
+JOBS = {'icons': icons, 'crate': crate, 'lineup': lineup, 'flatlay': flatlay, 'seal': seal, 'pin': pin, 'footer': footer}
 for job in [a for a in args if not a.startswith('-')] or list(JOBS):
     JOBS[job]()

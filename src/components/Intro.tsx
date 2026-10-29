@@ -47,7 +47,7 @@ export default function Intro() {
               {NUTS.map(([n, a]) => (
                 <div key={n} className="ic-nut" style={{ '--a': `${a}deg` } as React.CSSProperties}>
                   <div className="ic-nut-r"><div className="ic-nut-b"><div className="ic-nut-c">
-                    <img src={`/images/intro/${n}.webp`} alt="" width="150" height="95" loading="lazy" decoding="async" />
+                    <img src={`/images/intro/${n}.webp`} alt="" width="300" height="230" loading="lazy" decoding="async" />
                   </div></div></div>
                 </div>
               ))}

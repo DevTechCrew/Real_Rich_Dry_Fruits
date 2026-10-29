@@ -1,5 +1,6 @@
 // Live 3D for the site: the Real Rich pouch, and for the hero the four dry fruits riding a ring round it, lit like the
 // Blender studio (blender/rr.py): key light top left, cool fill right, rim behind, Khronos PBR Neutral tone mapping.
+// The dry fruits are photographs (blender/cutouts.py) on cards that always face the camera, so they look real from every angle.
 // Loaded on demand by components/Stage3D.tsx, so three.js never weighs on the first paint. Models: blender/export_models.py.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -11,7 +12,7 @@ export type HeroSpec = {
   camera: { fov: number; position: V3; target: V3 };
   pouch: { slug: string; position: V3; rotationY: number };
   ring: { y: number; tilt: number; period: number };
-  nuts: { kind: NutKind; r: number; a: number; h: number; rot: V3; spin: number; scale: number }[];
+  nuts: { kind: NutKind; pose: number; r: number; a: number; h: number; roll: number; rock: number; size: number }[];
 };
 export type StageOptions = { mode: 'hero'; spec: HeroSpec } | { mode: 'pack'; slug: string };
 type Hooks = { interactEl: HTMLElement; onReady: () => void; onLost: () => void };
@@ -19,15 +20,17 @@ type Hooks = { interactEl: HTMLElement; onReady: () => void; onLost: () => void 
 const D = Math.PI / 180;
 const loader = new GLTFLoader();
 let pouchModel: Promise<THREE.Object3D> | null = null;
-let nutModels: Promise<Partial<Record<NutKind, THREE.Mesh>>> | null = null;
+const nutArts = new Map<string, Promise<THREE.Texture>>();
 const arts = new Map<string, Promise<THREE.Texture>>();
 
 const loadPouch = () => (pouchModel ??= loader.loadAsync('/models/pouch.glb').then(g => g.scene));
-const loadNuts = () => (nutModels ??= loader.loadAsync('/models/nuts.glb').then(g => {
-  const out: Partial<Record<NutKind, THREE.Mesh>> = {};
-  g.scene.traverse(o => { if ((o as THREE.Mesh).isMesh) out[o.name as NutKind] = o as THREE.Mesh; });
-  return out;
-}));
+const loadNut = (kind: NutKind, pose: number) => {         // the same cut-outs as the floating nuts: photos/fly/{kind}[-pose]
+  const name = pose > 1 ? `${kind}-${pose}` : kind;
+  if (!nutArts.has(name)) nutArts.set(name, new THREE.TextureLoader().loadAsync(`/images/photos/fly/${name}.webp`).then(t => {
+    t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+  }));
+  return nutArts.get(name)!;
+};
 const loadArt = (slug: string) => {
   if (!arts.has(slug)) arts.set(slug, new THREE.TextureLoader().loadAsync(`/models/art-${slug}.webp`).then(t => {
     t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.anisotropy = 8; return t; // glTF UVs, so no flip
@@ -67,7 +70,8 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
   const camera = new THREE.PerspectiveCamera(26, 1, 1, 600);
   const pivot = new THREE.Group(); scene.add(pivot);        // the pouch turns inside this
   const ring = new THREE.Group(); scene.add(ring);          // the hero's nuts ride this
-  const nuts: { mesh: THREE.Mesh; q0: THREE.Quaternion; spec: HeroSpec['nuts'][number]; i: number }[] = [];
+  const nuts: { mesh: THREE.Mesh; spec: HeroSpec['nuts'][number]; i: number }[] = [];
+  const face = new THREE.Quaternion(), roll = new THREE.Quaternion(), Z = new THREE.Vector3(0, 0, 1);
   let baseYaw = 0, sway = 5, reach = 26, ringSpec: HeroSpec['ring'] | null = null;
 
   // interaction: the pouch turns toward the pointer; a drag spins it, then it eases back
@@ -108,10 +112,11 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
     if (ringSpec) {
       ring.rotation.y += ((px * 5 * D) - ring.rotation.y) * k; ring.rotation.x += ((py * 3 * D) - ring.rotation.x) * k;
       const tilt = ringSpec.tilt * D, turn = (t / ringSpec.period) * Math.PI * 2;
+      face.copy(ring.quaternion).invert().multiply(camera.quaternion);   // the cards face the camera however the ring leans
       for (const n of nuts) {
         const a = n.spec.a * D + turn;
         n.mesh.position.set(n.spec.r * Math.cos(a), ringSpec.y + n.spec.h - n.spec.r * Math.sin(a) * Math.sin(tilt) + (Math.sin(t * 0.8 + n.i) - Math.sin(n.i)) * 0.35, n.spec.r * Math.sin(a) * Math.cos(tilt));
-        n.mesh.quaternion.copy(n.q0).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), n.spec.spin * D * t));
+        n.mesh.quaternion.copy(face).multiply(roll.setFromAxisAngle(Z, (n.spec.roll + (Math.sin(t * 0.5 + n.i * 1.7) - Math.sin(n.i * 1.7)) * n.spec.rock) * D));
       }
     }
     renderer.render(scene, camera);
@@ -130,7 +135,7 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
   canvas.addEventListener('webglcontextlost', hooks.onLost);
 
   const slug = opts.mode === 'hero' ? opts.spec.pouch.slug : opts.slug;
-  Promise.all([loadPouch(), loadArt(slug), opts.mode === 'hero' ? loadNuts() : Promise.resolve(null)]).then(([pouchSrc, art, nutSrc]) => {
+  Promise.all([loadPouch(), loadArt(slug), opts.mode === 'hero' ? Promise.all(opts.spec.nuts.map(n => loadNut(n.kind, n.pose))) : Promise.resolve(null)]).then(([pouchSrc, art, nutSrc]) => {
     if (disposed) return;
     const pouch = pouchSrc.clone(true);
     pouch.traverse(o => {
@@ -157,10 +162,10 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
       scene.add(blobShadow(26, 11, 0.32));
       ringSpec = s.ring;
       s.nuts.forEach((spec, i) => {
-        const src = nutSrc?.[spec.kind]; if (!src) return;
-        const mesh = new THREE.Mesh(src.geometry, src.material); mesh.scale.setScalar(spec.scale);
-        const q0 = new THREE.Quaternion().setFromEuler(new THREE.Euler(spec.rot[0] * D, spec.rot[1] * D, spec.rot[2] * D));
-        ring.add(mesh); nuts.push({ mesh, q0, spec, i });
+        const map = nutSrc![i], { width: w, height: h } = map.image as HTMLImageElement, k = spec.size / Math.max(w, h);
+        // the photograph as it is (no lighting, no tone mapping), exactly as the poster has it (blender/export_web.py stage)
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w * k, h * k), new THREE.MeshBasicMaterial({ map, transparent: true, depthWrite: false, toneMapped: false }));
+        ring.add(mesh); nuts.push({ mesh, spec, i });
       });
     }
     pivot.rotation.y = baseYaw;

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
-// The four dry fruits levitating (blender/render_sections.py, promise): one slice per nut, so each floats on its own beat.
-const slices: [number, number][] = [[347, 279], [375, 279], [341, 279], [337, 279]];
+// The four dry fruits levitating, photographed rim-lit on black (blender/cutouts.py): one slice per nut, so each floats on its own beat.
+const slices: [number, number][] = [[391, 276], [365, 276], [364, 276], [365, 276]];
 const total = slices.reduce((a, [w]) => a + w, 0);
 export default function Levitas() {
   return (
