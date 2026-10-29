@@ -20,7 +20,7 @@ Blender renders (blender/, Blender 5.2, run headless; .blend files and raw rende
 - python3 blender/pack_art.py rasterises the pack PDFs (page 1, untouched) into textures; render_packs.py renders the pouches; render_fly.py the cut-outs; render_stage.py the hero poster from src/data/stage.json; render_sections.py the section renders; export_models.py the real-time models; scenes.py the hero scene and share frame (scenes.py range ... renders range scenes too, not used: the AI range photos still look better).
 - python3 blender/export_web.py packs fly art stage hero og sections writes the site files. Run Blender as: /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup -P blender/<script>.py -- [options]
 
-Preloader (src/components/Intro.tsx, IntroExit.tsx, src/app/intro.css): the gold RR is struck in 3D, the name rises, then the logo docks into the header. It plays on a first visit and not again for 12 hours, never for reduced motion, and a tap or key skips it. Add ?intro to any URL to replay it. Its vector art (src/components/introArt.ts) and the nut cut-outs in public/images/intro come from scripts/gen_intro_art.py; rerun it if the logo changes.
+Preloader (src/components/Intro.tsx, IntroExit.tsx, src/app/intro.css): the gold RR is struck in 3D, the name rises, then the logo docks into the header. It plays on every page load (reloads included, not when moving between pages inside the site), never for reduced motion, and a tap or key skips it. Its vector art (src/components/introArt.ts) and the nut cut-outs in public/images/intro come from scripts/gen_intro_art.py; rerun it if the logo changes.
 
 Launch: set NEXT_PUBLIC_NOINDEX=1 on preview, remove it at launch, set NEXT_PUBLIC_SITE_URL to the real domain.
 

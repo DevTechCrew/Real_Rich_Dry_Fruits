@@ -29,9 +29,9 @@ const schema = {
   ...(site.hours ? { openingHours: site.hours } : {}),
 };
 const ga = process.env.NEXT_PUBLIC_GA_ID;
-// Runs before the first paint: the preloader plays on a first visit, then not again for 12 hours (add ?intro to a URL
-// to replay it), and never for reduced motion.
-const boot = "(function(d){d.classList.add('js');try{var n=Date.now(),s=+localStorage.getItem('rr-intro')||0;if(matchMedia('(prefers-reduced-motion: reduce)').matches||(n-s<432e5&&!/[?&]intro\\b/.test(location.search))){d.classList.add('no-intro');return}localStorage.setItem('rr-intro',n);d.classList.add('intro-on','intro-hold')}catch(e){d.classList.add('no-intro')}})(document.documentElement)";
+// Runs before the first paint: the preloader plays on every full page load, reloads included (moving between pages
+// inside the site is not a reload, so it does not replay), and never for reduced motion.
+const boot = "(function(d){d.classList.add('js');try{if(matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('no-intro');return}d.classList.add('intro-on','intro-hold')}catch(e){d.classList.add('no-intro')}})(document.documentElement)";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
