@@ -1,5 +1,5 @@
 export type Product = { slug: string; name: string; hindi?: string; size: string; image: string; pack: string; originPhoto: string; blurb: string; origin: string; wa: string };
-// image: AI photos for the range cards (/public/images/range). pack: pack fronts rendered from the client's pack PDFs (/public/images/packs).
+// image: AI photos for the range cards (/public/images/range). pack: 3D pouch renders wearing the client's untouched pack art (/public/images/packs, blender/render_packs.py).
 // originPhoto: AI zoomed-out photos for the origin cards on Quality (/public/images/origins). Copy is draft. Origins were confirmed in the Oct 2026 change request.
 export const products: Product[] = [
   { slug: 'almonds', name: 'Almonds', hindi: 'Badam', size: '250 g', image: '/images/range/almonds.webp', pack: '/images/packs/almonds.webp', originPhoto: '/images/origins/almonds.webp', wa: 'Almonds',

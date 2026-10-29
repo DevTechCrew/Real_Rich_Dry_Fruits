@@ -62,11 +62,11 @@ out = os.path.join(ROOT, 'src', 'components', 'introArt.ts')
 open(out, 'w').write('\n'.join(ts))
 print('introArt.ts', os.path.getsize(out), 'bytes;', len(glyphs), 'glyphs;', len(name), 'name letters;', len(tag), 'tagline letters')
 
-# small nut cut-outs for the orbit
+# small nut cut-outs for the orbit, from the Blender cut-outs (blender/render_fly.py)
 os.makedirs(os.path.join(ROOT, 'public', 'images', 'intro'), exist_ok=True)
-for n in ('almond', 'pistachio', 'raisin'):
-    im = Image.open(os.path.join(ROOT, 'public', 'images', 'photos', 'fly', f'{n}.png')).convert('RGBA')
-    im = im.resize((150, round(150 * im.height / im.width)), Image.LANCZOS)
+for n in ('almond', 'cashew', 'pistachio', 'raisin'):
+    im = Image.open(os.path.join(ROOT, 'public', 'images', 'photos', 'fly', f'{n}.webp')).convert('RGBa')
+    im = im.resize((150, round(150 * im.height / im.width)), Image.LANCZOS).convert('RGBA')
     dst = os.path.join(ROOT, 'public', 'images', 'intro', f'{n}.webp')
     im.save(dst, 'WEBP', quality=80, method=6)
     print(dst.split('public/')[1], im.size, os.path.getsize(dst) // 1024, 'KB')

@@ -132,19 +132,7 @@ save_png(tile(180, False).convert('RGB'), 'apple-touch-icon.png')
 for s in (16, 32, 48): save_png(tile(s, True, 0.7), f'favicon-{s}.png')
 tile(256, True, 0.7).save(os.path.join(PUB, 'favicon.ico'), sizes=[(16, 16), (32, 32), (48, 48)])
 
-# ---- social share image (1200x630): new logo + hero photo, same layout as before
-og = Image.new('RGBA', (1200, 630), (247, 242, 232, 255))
-ImageDraw.Draw(og).rectangle([0, 0, 1199, 7], fill=(184, 149, 74, 255))
-lw = 430; lg = full_png.resize((lw, round(lw * full_png.height / full_png.width)), Image.LANCZOS)
-og.alpha_composite(lg, (310 - lw // 2, 315 - lg.height // 2))
-hero = Image.open(os.path.join(PUB, 'images', 'photos', 'hero.webp')).convert('RGBA')
-hw, hh = 520, round(520 * hero.height / hero.width); hero = hero.resize((hw, hh), Image.LANCZOS)
-x, y = 620, (630 - hh) // 2
-sh = Image.new('RGBA', og.size, (0, 0, 0, 0))
-ImageDraw.Draw(sh).rectangle([x + 6, y + 14, x + hw + 6, y + hh + 14], fill=(43, 30, 22, 70))
-og.alpha_composite(sh.filter(ImageFilter.GaussianBlur(18)))
-og.alpha_composite(hero, (x, y))
-og.convert('RGB').save(os.path.join(PUB, 'og-image.png'), optimize=True); report['og-image.png'] = [1200, 630]
+# The social share image (og-image.png) is built from the Blender hero set by blender/export_web.py (og), using logo.png.
 
 # ---- previews for review
 sheet = Image.new('RGBA', (1240, 470), (247, 242, 232, 255))
@@ -160,5 +148,4 @@ for i, s in enumerate((512, 192, 48, 32, 16)):
     t = t.resize((min(s, 96), min(s, 96))) if s > 96 else t
     sheet.alpha_composite(t, (700 + i * 105, 360))
 sheet.convert('RGB').save(os.path.join(PREV, 'logo-sheet.jpg'), quality=90)
-og.convert('RGB').save(os.path.join(PREV, 'og-preview.jpg'), quality=85)
 print(json.dumps(report, indent=1))

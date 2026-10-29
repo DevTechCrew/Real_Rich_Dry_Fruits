@@ -33,7 +33,7 @@ export default function Home() {
         </div>
       </div>
       <div className="levitate">
-        <Img src="/images/photos/hero.webp" alt="Cashews, almonds, pistachios and raisins on ivory linen" ratio="3/2" className="hero-img" eager />
+        <Img src="/images/photos/hero.webp" alt="A Real Rich almonds pack with cashews, almonds, pistachios and raisins on ivory linen" ratio="3/2" className="hero-img" eager />
         <span className="levitate-shadow" aria-hidden="true" />
         <RotatingBadge />
       </div>
@@ -42,7 +42,7 @@ export default function Home() {
     <Marquee />
 
     {/* The only product listing on the site, one product per row. "See our range" scrolls here */}
-    <Section id="range" tone="alt" decor={<><ParallaxNut n="almond" side="l" top="10%" size={70} speed={0.12} /><ParallaxNut n="raisin" side="r" top="64%" size={62} speed={-0.1} /></>}>
+    <Section id="range" tone="alt" decor={<><ParallaxNut n="almond-2" side="l" top="10%" size={70} speed={0.12} /><ParallaxNut n="cashew-3" side="r" top="64%" size={66} speed={-0.1} /></>}>
       <h2>Our range</h2>
       {products.map((p, i) => <ProductRow key={p.slug} p={p} index={i} />)}
       <p style={{ marginTop: 8 }}><Link className="link" href="/bulk-orders/">Need bulk quantity? <ArrowRightIcon /></Link></p>
@@ -50,7 +50,7 @@ export default function Home() {
 
     <Wave from="almond" to="ivory" />
 
-    <Section decor={<><ParallaxNut n="pistachio" side="l" top="18%" size={68} speed={0.15} /><ParallaxNut n="almond" side="r" top="62%" size={72} speed={-0.12} /></>}>
+    <Section decor={<><ParallaxNut n="pistachio-3" side="l" top="18%" size={68} speed={0.15} /><ParallaxNut n="raisin-2" side="r" top="62%" size={56} speed={-0.12} /></>}>
       <h2>Why Real Rich</h2>
       <div className="why stagger">{why.map(w => (
         <div key={w.t}><svg viewBox="0 0 24 24" aria-hidden="true">{w.i}</svg><h3>{w.t}</h3><p className="muted">{w.d}</p></div>

@@ -10,7 +10,7 @@ import IntroExit from './IntroExit';
 
 const LAYERS = 12; // depth slices behind the gold face
 const mix = (a: string, b: string, t: number) => '#' + [0, 2, 4].map(i => Math.round(parseInt(a.slice(1 + i, 3 + i), 16) * (1 - t) + parseInt(b.slice(1 + i, 3 + i), 16) * t).toString(16).padStart(2, '0')).join('');
-const NUTS = [['almond', 0], ['pistachio', 120], ['raisin', 240]] as const;
+const NUTS = [['almond', 0], ['cashew', 90], ['pistachio', 180], ['raisin', 270]] as const;
 const RING_TEXT = 'HAND-PICKED  •  PREMIUM DRY FRUITS  •  KHANDWA, MADHYA PRADESH  •  ';
 
 export default function Intro() {

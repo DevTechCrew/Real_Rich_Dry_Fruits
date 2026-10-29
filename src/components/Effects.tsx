@@ -2,16 +2,17 @@ import type { CSSProperties } from 'react';
 const v = (o: Record<string, string | number>) => o as CSSProperties;
 
 // Falls in once with a bounce, then drifts. Extras are hidden on phones (class "x").
+// Single-nut cut-outs rendered in Blender (blender/render_fly.py): {nut}, {nut}-2, {nut}-3 are three poses.
 const NUTS: [string, number, number, number, number, boolean][] = [
-  ['almond', 1, 8, 92, 0.2, true], ['raisin', 40, 3, 70, 0.55, false], ['pistachio', 91, 7, 86, 0.9, true],
-  ['raisin', 34, 83, 74, 0.4, true], ['almond', 46, 88, 70, 1.1, false], ['pistachio', 92, 78, 74, 0.7, false],
+  ['almond', 1, 8, 84, 0.2, true], ['cashew-2', 40, 3, 68, 0.55, false], ['pistachio', 91, 7, 78, 0.9, true],
+  ['cashew', 34, 83, 76, 0.4, true], ['raisin-3', 46, 88, 58, 1.1, false], ['almond-3', 92, 78, 70, 0.7, false],
 ];
 export function FloatingNuts() {
   return (
     <div className="fnuts" aria-hidden="true">
       {NUTS.map(([n, l, t, s, d, m], i) => (
         <span key={i} className={`fn ${m ? '' : 'x'}`} style={v({ left: `${l}%`, top: `${t}%`, width: s, '--d': `${d}s` })}>
-          <img src={`/images/photos/fly/${n}.png`} alt="" loading="lazy" style={v({ '--r': `${(i % 2 ? -1 : 1) * (8 + i * 3)}deg` })} />
+          <img src={`/images/photos/fly/${n}.webp`} alt="" loading="lazy" style={v({ '--r': `${(i % 2 ? -1 : 1) * (8 + i * 3)}deg` })} />
         </span>
       ))}
     </div>
@@ -21,7 +22,7 @@ export function Blobs() {
   return <div className="blobs" aria-hidden="true"><i className="b1" /><i className="b2" /><i className="b3" /></div>;
 }
 export function ParallaxNut({ n, side, top, size, speed }: { n: string; side: 'l' | 'r'; top: string; size: number; speed: number }) {
-  return <span className={`pnut ${side}`} data-speed={speed} style={v({ top, width: size })} aria-hidden="true"><img src={`/images/photos/fly/${n}.png`} alt="" loading="lazy" /></span>;
+  return <span className={`pnut ${side}`} data-speed={speed} style={v({ top, width: size })} aria-hidden="true"><img src={`/images/photos/fly/${n}.webp`} alt="" loading="lazy" /></span>;
 }
 export function Wave({ from, to }: { from: 'ivory' | 'almond' | 'espresso'; to: 'ivory' | 'almond' | 'espresso' }) {
   return <div className={`wave f-${from} t-${to}`} aria-hidden="true" />;
