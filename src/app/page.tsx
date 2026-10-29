@@ -35,7 +35,7 @@ export default function Home() {
           <WaButton className="btn ghost" href={waLink(generalMessage)} where="hero">Enquire on WhatsApp</WaButton>
         </div>
       </div>
-      {/* Live 3D: the real pack with the four dry fruits circling it. Turns toward the pointer; drag to spin it. */}
+      {/* Live 3D: the real pack with the four dry fruits circling it. Turns toward the pointer; drag to spin it. Every few seconds it spins round to the next pack. */}
       <div className="hero-stage">
         <Stage3D opts={{ mode: 'hero', spec: stage as unknown as HeroSpec }} poster="/images/photos/hero-stage.webp" width={1200} height={960} eager interactWith=".hero"
           alt="A Real Rich almonds pack floating among almonds, cashews, pistachios and raisins" />

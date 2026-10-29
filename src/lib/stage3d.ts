@@ -12,6 +12,7 @@ export type HeroSpec = {
   camera: { fov: number; position: V3; target: V3 };
   pouch: { slug: string; position: V3; rotationY: number };
   ring: { y: number; tilt: number; period: number };
+  cycle: { slugs: string[]; every: number; turn: number; whirl: number };
   nuts: { kind: NutKind; pose: number; r: number; a: number; h: number; roll: number; rock: number; size: number }[];
 };
 export type StageOptions = { mode: 'hero'; spec: HeroSpec } | { mode: 'pack'; slug: string };
@@ -45,7 +46,7 @@ function blobShadow(w: number, d: number, opacity: number) {
   grad.addColorStop(0, 'rgba(43,30,22,1)'); grad.addColorStop(0.45, 'rgba(43,30,22,.5)'); grad.addColorStop(1, 'rgba(43,30,22,0)');
   g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, opacity, depthWrite: false }));
-  m.rotation.x = -Math.PI / 2; m.position.y = 0.02; m.renderOrder = -1;
+  m.rotation.x = -Math.PI / 2; m.position.y = 0.02; m.renderOrder = -1; m.userData.opacity = opacity;
   return m;
 }
 
@@ -73,6 +74,10 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
   const nuts: { mesh: THREE.Mesh; spec: HeroSpec['nuts'][number]; i: number }[] = [];
   const face = new THREE.Quaternion(), roll = new THREE.Quaternion(), Z = new THREE.Vector3(0, 0, 1);
   let baseYaw = 0, sway = 5, reach = 26, ringSpec: HeroSpec['ring'] | null = null;
+  // the hero shows each pack in turn: every few seconds the pouch is tossed up and spun round once, its art swapped while
+  // the front faces away, and the ring of nuts whirls along. Its own clock, which waits while the pouch is being dragged.
+  let cycle: HeroSpec['cycle'] | null = null, packs: THREE.Texture[] = [], ct = 0, yaw = 0, shadow: THREE.Mesh | null = null;
+  const fronts: THREE.MeshStandardMaterial[] = [];
 
   // interaction: the pouch turns toward the pointer; a drag spins it, then it eases back
   let px = 0, py = 0, spin = 0, vel = 0, dragging = false, lastX = 0;
@@ -106,12 +111,23 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
       if (Math.abs(vel) < 0.002) { spin = Math.atan2(Math.sin(spin), Math.cos(spin)); spin *= Math.pow(0.15, dt); }
     }
     const k = 1 - Math.pow(0.02, dt);                         // smooth pointer follow (0 while holding)
-    pivot.rotation.y += ((baseYaw + Math.sin(t * 0.45) * sway * D + px * reach * D + spin) - pivot.rotation.y) * k;
-    pivot.rotation.x += ((py * 4 * D) - pivot.rotation.x) * k;
-    pivot.position.y = Math.sin(t * 0.9) * 0.25;
+    let turned = 0, lift = 0, whirl = 0;
+    if (cycle && packs.length) {
+      if (!dragging) ct += dt;
+      const n = Math.floor(ct / cycle.every), p = (ct - n * cycle.every) / cycle.turn, on = n > 0 && p < 1;
+      const e = on ? (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(2 - 2 * p, 3) / 2) : 0;   // ease in, ease out
+      turned = e * Math.PI * 2; lift = on ? Math.sin(p * Math.PI) : 0; whirl = (on ? n - 1 + e : n) * cycle.whirl * D;
+      const map = packs[(n - (on && p < 0.5 ? 1 : 0)) % packs.length];
+      if (fronts[0]?.map !== map) for (const m of fronts) m.map = map;
+    }
+    yaw += ((baseYaw + Math.sin(t * 0.45) * sway * D + px * reach * D + spin) - yaw) * k;
+    pivot.rotation.y = yaw + turned;
+    pivot.rotation.x += (((py * 4 - lift * 6) * D) - pivot.rotation.x) * k;
+    pivot.position.y = Math.sin(t * 0.9) * 0.25 + lift * 1.6;
+    if (shadow) { shadow.scale.setScalar(1 - 0.2 * lift); (shadow.material as THREE.MeshBasicMaterial).opacity = shadow.userData.opacity * (1 - 0.45 * lift); }
     if (ringSpec) {
       ring.rotation.y += ((px * 5 * D) - ring.rotation.y) * k; ring.rotation.x += ((py * 3 * D) - ring.rotation.x) * k;
-      const tilt = ringSpec.tilt * D, turn = (t / ringSpec.period) * Math.PI * 2;
+      const tilt = ringSpec.tilt * D, turn = (t / ringSpec.period) * Math.PI * 2 + whirl;
       face.copy(ring.quaternion).invert().multiply(camera.quaternion);   // the cards face the camera however the ring leans
       for (const n of nuts) {
         const a = n.spec.a * D + turn;
@@ -142,7 +158,7 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
       const m = o as THREE.Mesh; if (!m.isMesh) return;
       const mats = (Array.isArray(m.material) ? m.material : [m.material]).map(mt => {
         const s = (mt as THREE.MeshStandardMaterial).clone();
-        if (s.name === 'front') { s.map = art; s.color.set(0xffffff); }
+        if (s.name === 'front') { s.map = art; s.color.set(0xffffff); fronts.push(s); }
         s.roughness = 0.55; s.envMapIntensity = 1; return s;
       });
       m.material = Array.isArray(m.material) ? mats : mats[0];
@@ -159,8 +175,9 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
       const s = opts.spec;
       baseYaw = s.pouch.rotationY * D; pivot.position.set(...s.pouch.position);
       camera.fov = s.camera.fov; camera.position.set(...s.camera.position); camera.lookAt(...s.camera.target);
-      scene.add(blobShadow(26, 11, 0.32));
+      scene.add(shadow = blobShadow(26, 11, 0.32));
       ringSpec = s.ring;
+      Promise.all(s.cycle.slugs.map(loadArt)).then(ts => { if (!disposed) { packs = ts; cycle = s.cycle; } }).catch(() => {});
       s.nuts.forEach((spec, i) => {
         const map = nutSrc![i], { width: w, height: h } = map.image as HTMLImageElement, k = spec.size / Math.max(w, h);
         // the photograph as it is (no lighting, no tone mapping), exactly as the poster has it (blender/export_web.py stage)
@@ -168,7 +185,7 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
         ring.add(mesh); nuts.push({ mesh, spec, i });
       });
     }
-    pivot.rotation.y = baseYaw;
+    pivot.rotation.y = yaw = baseYaw;
     resize(); frame(0); ready = true; hooks.onReady(); loop(performance.now());
   }).catch(e => console.warn('3D stage could not load, keeping the image', e));
 
