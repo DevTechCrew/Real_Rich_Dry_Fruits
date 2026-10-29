@@ -39,6 +39,11 @@ const loadArt = (slug: string) => {
   return arts.get(slug)!;
 };
 
+/** Samples the pack art a mip level finer than WebGL picks by itself, so the small print stays crisp, not soft. */
+const crisp = (sh: { fragmentShader: string }) => {
+  sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', THREE.ShaderChunk.map_fragment.replace('texture2D( map, vMapUv )', 'texture2D( map, vMapUv, -1.0 )'));
+};
+
 /** A soft round contact shadow: a radial gradient on a plane, cheaper and softer than a shadow map. */
 function blobShadow(w: number, d: number, opacity: number) {
   const c = document.createElement('canvas'); c.width = c.height = 128;
@@ -56,8 +61,6 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   } catch { return () => {}; } // no WebGL: the poster image stays
-  const coarse = matchMedia('(pointer: coarse)').matches;
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, coarse ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.15;
   renderer.setClearColor(0x000000, 0);
@@ -97,6 +100,7 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
   let disposed = false, visible = true, raf = 0, ready = false, t = 0, last = 0;
   const resize = () => {
     const w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return;
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 3, Math.sqrt(2.6e6 / (w * h))));   // the screen's own density (3x phones too), within a budget
     renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
   };
   const ro = new ResizeObserver(resize); ro.observe(canvas);
@@ -158,7 +162,7 @@ export function mountStage(canvas: HTMLCanvasElement, opts: StageOptions, hooks:
       const m = o as THREE.Mesh; if (!m.isMesh) return;
       const mats = (Array.isArray(m.material) ? m.material : [m.material]).map(mt => {
         const s = (mt as THREE.MeshStandardMaterial).clone();
-        if (s.name === 'front') { s.map = art; s.color.set(0xffffff); fronts.push(s); }
+        if (s.name === 'front') { s.map = art; s.color.set(0xffffff); s.onBeforeCompile = crisp; fronts.push(s); }
         s.roughness = 0.55; s.envMapIntensity = 1; return s;
       });
       m.material = Array.isArray(m.material) ? mats : mats[0];
