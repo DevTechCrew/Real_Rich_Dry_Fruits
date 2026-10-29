@@ -243,6 +243,106 @@ def per_object_variation(m, col, hue=0.02, val=0.12):
 
 
 # ---------------------------------------------------------------- materials
+# ---------------------------------------------------------------- photographed skins
+# Macro photographs of each skin (blend-src/tex/final, prepared by blender/skins.py), mapped the way the real grain runs.
+# Each nut falls back to its procedural material below when its photograph is missing.
+TEX = os.path.join(WORK, 'tex', 'final')
+has_photo = lambda name: os.path.exists(os.path.join(TEX, f'{name}.png'))
+
+
+def photo(m, name, vec, box=False, colorspace='sRGB'):
+    t = m.n('ShaderNodeTexImage'); t.image = bpy.data.images.load(os.path.join(TEX, f'{name}.png'), check_existing=True)
+    t.image.colorspace_settings.name = colorspace; t.interpolation = 'Cubic'
+    if box:
+        t.projection = 'BOX'; t.projection_blend = 0.45
+    m.link(vec, t.inputs['Vector'])
+    return t.outputs['Color']
+
+
+def round_axis(m, vec, repeat=2):
+    """Wrap a texture round a nut's long (x) axis: u goes round it, v runs from end to end, so lengthwise grain meets
+    at the ends the way real almond skin and pistachio shell do. `vec` is a point on (or near) the unit sphere."""
+    xyz = m.n('ShaderNodeSeparateXYZ'); m.link(vec, xyz.inputs['Vector'])
+    u = m.math('MULTIPLY', m.math('ADD', m.math('DIVIDE', m.math('ARCTAN2', xyz.outputs['Z'], xyz.outputs['Y']), 2 * math.pi), 0.5), repeat)
+    v = m.math('ADD', m.math('MULTIPLY', xyz.outputs['X'], 0.5), 0.5)
+    c = m.n('ShaderNodeCombineXYZ'); m.link(u, c.inputs['X']); m.link(v, c.inputs['Y'])
+    return c.outputs['Vector']
+
+
+def at_scale(m, size):
+    """Object coordinates scaled so one photograph spans `size` cm, centred in the tile (box projection)."""
+    mp = m.n('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (1 / size,) * 3; mp.inputs['Location'].default_value = (0.5, 0.5, 0.5)
+    m.link(m.n('ShaderNodeTexCoord').outputs['Object'], mp.inputs['Vector'])
+    return mp.outputs['Vector']
+
+
+def lum(m, col):
+    bw = m.n('ShaderNodeRGBToBW'); m.link(col, bw.inputs['Color'])
+    return bw.outputs['Val']
+
+
+def mat_almond_photo():
+    m = M('almond')
+    sph = m.n('ShaderNodeAttribute', attribute_name='sph').outputs['Vector']
+    col = photo(m, 'almond_skin', round_axis(m, sph, 2)); L = lum(m, col)
+    m.link(per_object_variation(m, col, hue=0.01, val=0.12), m.bsdf.inputs['Base Color'])
+    lumps = m.noise(m.coords(scale=(0.6, 2.2, 2.2)), 2.0, detail=3, rough=0.55)
+    m.link(m.bump(m.math('ADD', L, m.math('MULTIPLY', lumps, 0.15)), strength=0.75, distance=0.022), m.bsdf.inputs['Normal'])
+    m.link(m.math('SUBTRACT', 0.66, m.math('MULTIPLY', L, 0.45)), m.bsdf.inputs['Roughness'])   # dusty grooves, satin ridges
+    m.set(Subsurface_Weight=0.08, Subsurface_Radius=(0.3, 0.18, 0.1), Subsurface_Scale=0.05, Specular_IOR_Level=0.38,
+          Sheen_Weight=0.14, Sheen_Roughness=0.6)
+    return m.mat
+
+
+def mat_cashew_photo():
+    m = M('cashew')
+    col = photo(m, 'cashew_surface', at_scale(m, 3.6), box=True); L = lum(m, col)
+    gen = m.n('ShaderNodeSeparateXYZ'); m.link(m.n('ShaderNodeTexCoord').outputs['Generated'], gen.inputs['Vector'])
+    ends = m.math('ABSOLUTE', m.math('SUBTRACT', gen.outputs['X'], 0.5))               # the tips are a touch more toasted
+    col = m.mix(m.math('MULTIPLY', m.math('POWER', m.math('MULTIPLY', ends, 2.0), 3.0), 0.3), col, '#C79D5E')
+    m.link(per_object_variation(m, col, hue=0.008, val=0.07), m.bsdf.inputs['Base Color'])
+    z = m.n('ShaderNodeSeparateXYZ'); m.link(m.n('ShaderNodeTexCoord').outputs['Object'], z.inputs['Vector'])
+    seam = m.n('ShaderNodeMapRange'); seam.inputs['From Min'].default_value = 0.0; seam.inputs['From Max'].default_value = 0.08
+    m.link(m.math('ABSOLUTE', z.outputs['Z']), seam.inputs['Value'])                 # where the two halves meet
+    m.link(m.bump(m.math('ADD', m.math('MULTIPLY', seam.outputs['Result'], 0.6), m.math('MULTIPLY', L, 0.45)), strength=0.3, distance=0.02), m.bsdf.inputs['Normal'])   # smooth kernel, fine grain
+    m.link(m.math('SUBTRACT', 0.58, m.math('MULTIPLY', L, 0.15)), m.bsdf.inputs['Roughness'])
+    m.set(Subsurface_Weight=0.35, Subsurface_Radius=(0.6, 0.45, 0.22), Subsurface_Scale=0.12, Specular_IOR_Level=0.42,
+          Sheen_Weight=0.1, Sheen_Roughness=0.5, Coat_Weight=0.06, Coat_Roughness=0.4)
+    return m.mat
+
+
+def mat_pistachio_shell_photo():
+    m = M('pistachio_shell')
+    mp = m.n('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (0.98, 1.54, 1.72)   # about the unit sphere
+    m.link(m.n('ShaderNodeTexCoord').outputs['Object'], mp.inputs['Vector'])
+    col = photo(m, 'pistachio_shell', round_axis(m, mp.outputs['Vector'], 1)); L = lum(m, col)
+    m.link(per_object_variation(m, col, hue=0.012, val=0.09), m.bsdf.inputs['Base Color'])
+    m.link(m.bump(L, strength=0.55, distance=0.02), m.bsdf.inputs['Normal'])
+    m.link(m.math('SUBTRACT', 0.7, m.math('MULTIPLY', L, 0.15)), m.bsdf.inputs['Roughness'])
+    m.set(Subsurface_Weight=0.08, Subsurface_Radius=(0.3, 0.25, 0.18), Subsurface_Scale=0.04, Specular_IOR_Level=0.35)
+    return m.mat
+
+
+def mat_pistachio_kernel_photo():
+    m = M('pistachio_kernel')
+    col = photo(m, 'pistachio_kernel', at_scale(m, 2.2), box=True); L = lum(m, col)
+    m.link(col, m.bsdf.inputs['Base Color'])
+    m.link(m.bump(L, strength=0.35, distance=0.015), m.bsdf.inputs['Normal'])
+    m.set(Roughness=0.5, Subsurface_Weight=0.25, Subsurface_Radius=(0.25, 0.4, 0.15), Subsurface_Scale=0.06, Specular_IOR_Level=0.4)
+    return m.mat
+
+
+def mat_raisin_photo():
+    m = M('raisin')
+    col = photo(m, 'raisin_skin', at_scale(m, 2.4), box=True); L = lum(m, col)
+    m.link(per_object_variation(m, col, hue=0.018, val=0.13), m.bsdf.inputs['Base Color'])
+    fine = m.noise(m.coords(scale=(0.6, 2.2, 2.2)), 14, detail=4, rough=0.6, kind='RIDGED_MULTIFRACTAL')
+    m.link(m.bump(m.math('ADD', L, m.math('MULTIPLY', fine, 0.3)), strength=0.4, distance=0.015), m.bsdf.inputs['Normal'])
+    m.set(Roughness=0.52, Subsurface_Weight=0.7, Subsurface_Radius=(0.9, 0.7, 0.28), Subsurface_Scale=0.22,
+          Specular_IOR_Level=0.45, Coat_Weight=0.08, Coat_Roughness=0.38)                # a soft sheen, not candy gloss
+    return m.mat
+
+
 def mat_almond():
     """Warm brown skin with fine wavy grooves running along the length and meeting at the tip, like real almond skin.
     The grooves follow the meridians of the sphere the almond was shaped from (mesh attribute 'sph')."""
@@ -400,9 +500,15 @@ def mat_brushed_gold():
 _MATS = {}
 def material(name):
     if name not in _MATS:
-        _MATS[name] = {'almond': mat_almond, 'cashew': mat_cashew, 'pistachio_shell': mat_pistachio_shell,
-                       'pistachio_kernel': mat_pistachio_kernel, 'raisin': mat_raisin, 'linen': mat_linen,
-                       'walnut': mat_walnut_wood, 'gold': mat_brushed_gold}[name]()
+        photos = {'almond': ('almond_skin', mat_almond_photo), 'cashew': ('cashew_surface', mat_cashew_photo),
+                  'pistachio_shell': ('pistachio_shell', mat_pistachio_shell_photo),
+                  'pistachio_kernel': ('pistachio_kernel', mat_pistachio_kernel_photo), 'raisin': ('raisin_skin', mat_raisin_photo)}
+        if name in photos and has_photo(photos[name][0]) and not os.environ.get('RR_PROCEDURAL'):
+            _MATS[name] = photos[name][1]()
+        else:
+            _MATS[name] = {'almond': mat_almond, 'cashew': mat_cashew, 'pistachio_shell': mat_pistachio_shell,
+                           'pistachio_kernel': mat_pistachio_kernel, 'raisin': mat_raisin, 'linen': mat_linen,
+                           'walnut': mat_walnut_wood, 'gold': mat_brushed_gold}[name]()
     return _MATS[name]
 
 

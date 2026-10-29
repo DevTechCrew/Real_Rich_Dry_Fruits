@@ -47,7 +47,7 @@ def to_emission(mat, input_name):
     return undo
 
 
-def baked_nut(kind, seed=7, tris=1500, size=256):
+def baked_nut(kind, seed=7, tris=2200, size=512):
     hi = apply_modifiers(rr.NUT_BUILDERS[kind](seed=seed, name=f'{kind}_hi'))
     lo = bpy.data.objects.new(kind, hi.data.copy()); bpy.context.scene.collection.objects.link(lo)
     dec = lo.modifiers.new('dec', 'DECIMATE'); dec.ratio = min(1.0, tris / max(1, sum(len(p.vertices) - 2 for p in lo.data.polygons)))
@@ -59,7 +59,7 @@ def baked_nut(kind, seed=7, tris=1500, size=256):
     bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0.02)
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    col = bpy.data.images.new(f'{kind}_color', size, size); nrm = bpy.data.images.new(f'{kind}_normal', size, size)
+    col = bpy.data.images.new(f'{kind}_color', size, size); nrm = bpy.data.images.new(f'{kind}_normal', size // 2, size // 2)   # colour carries the realism
     nrm.colorspace_settings.name = 'Non-Color'
     m = bpy.data.materials.new(f'{kind}'); m.use_nodes = True; nt = m.node_tree
     bsdf = nt.nodes['Principled BSDF']; tex = nt.nodes.new('ShaderNodeTexImage'); nt.nodes.active = tex
